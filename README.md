@@ -44,7 +44,7 @@ This repository itself ships with [`AGENTS.md`](AGENTS.md) and [`CLAUDE.md`](CLA
 
 ## What passes and what remains uncertain?
 
-The guard runs locally without nonstdlib dependencies; its test suite includes both valid examples and deliberately broken mutations. **Passing CI is not visual certification.** Human GitHub browser inspection is still required; see the [current evidence ledger](docs/MATH_COMPATIBILITY_LEDGER.md). In particular, upstream MathJax documentation lists `\operatorname`, but that is not proof of its behavior inside every GitHub surface.
+The guard runs locally without nonstdlib dependencies; its test suite includes both valid examples and deliberately broken mutations. **Passing CI is not visual certification.** Human GitHub browser inspection is still required; see the [current evidence ledger](docs/MATH_COMPATIBILITY_LEDGER.md). In the **2026-10-23 mobile repository-Markdown A/B screenshot**, `\mathrm` passed in all three contexts, while `\operatorname` produced GitHub's explicit **"The following macros are not allowed: operatorname"** error in inline, display, and `math`-fence contexts. This is an observation on the tested surface, not a universal MathJax incompatibility. [See the evidence ledger](docs/MATH_COMPATIBILITY_LEDGER.md). All T00–T21 strips and other GitHub surfaces remain unverified.
 
 **Reference specifications:** [GitHub's official mathematical expressions guide](https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/writing-mathematical-expressions) · [MathJax supported TeX commands](https://docs.mathjax.org/en/stable/input/tex/macros/)
 
