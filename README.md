@@ -8,7 +8,7 @@
 
 **A calibration test card for GitHub mathematics.** Make Claude, Codex, and other coding agents prove their Markdown math is *source-valid*, then verify how it actually renders on GitHub. The broadcast bars are a joke; the test suite is not.
 
-> **⚠️ GITHUB'S ANDROID APP IS TRASH AT DISPLAYING THIS TEST CARD.** The 22 reference strips were reported to render correctly in **phone and PC web browsers**. The supplied GitHub Android-app capture is a lousy place to judge mathematical typography. **Use `github.com` in a web browser for visual calibration, not the Android app.** The screenshot documents an app-view usability concern; it does **not** establish 22 individual MathJax failures. [Evidence and limits](docs/MATH_COMPATIBILITY_LEDGER.md#github-android-app-observation--o-2026-10-23-android-app).
+> **⚠️ GITHUB'S ANDROID APP IS TRASH AT DISPLAYING THIS TEST CARD.** The 22 reference strips were reported to render correctly in **phone and PC web browsers**. The supplied GitHub Android-app capture is a lousy place to judge mathematical typography. **Use `github.com` in a web browser for visual calibration, not the Android app.** The screenshot documents an app-view usability concern; it does **not** establish 22 individual MathJax failures. [Evidence and limits](docs/MATH_COMPATIBILITY_LEDGER.md).
 
 [**🧪 Open the live math test card**](docs/GITHUB_MATH_TEST_CARD.md) · [**🔍 Inspect the `\operatorname` A/B probe**](docs/probes/OPERATORNAME_AB.md) · [**📋 Rendering review checklist**](docs/RENDER_REVIEW_CHECKLIST.md) · [**📒 Compatibility ledger**](docs/MATH_COMPATIBILITY_LEDGER.md)
 
