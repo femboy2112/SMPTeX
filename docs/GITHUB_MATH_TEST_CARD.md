@@ -2,6 +2,8 @@
 
 **Purpose:** a repeatable, repository-local calibration target for Codex, Claude, and other agents writing mathematics for GitHub Markdown. **Reference renderer:** GitHub's MathJax-backed Markdown UI. **Current verification state:** All **22/22 test strips** are **user-reported visually passing** in GitHub repository Markdown on both phone and PC browsers (2026-10-23 EDT). The viewed commit and browser versions were not supplied. Wiki, PR and Issue surfaces remain unverified; see the [ledger](MATH_COMPATIBILITY_LEDGER.md).
 
+> **⚠️ GITHUB'S ANDROID APP IS TRASH AS A MATH CALIBRATION REFERENCE.** The phone **web browser** and PC **web browser** passed T00–T21 (22/22 each, user report); an Android GitHub-app screenshot instead shows an extremely cramped, difficult-to-assess presentation. **Inspect in a browser.** The app observation is not an itemized TeX-parser failure, and long-screenshot scaling may contribute. [Surface ledger](MATH_COMPATIBILITY_LEDGER.md).
+
 **How to read this card:** each numbered strip is a distinct parsing/rendering challenge. The **display** immediately below each heading should appear as mathematical notation, **not** as raw TeX commands. Compare the live GitHub page with its source and the expected appearance. If something fails, record the strip ID, file URL, surface (repository Markdown, PR, or wiki), and commit in [the compatibility ledger](MATH_COMPATIBILITY_LEDGER.md).
 
 ---
