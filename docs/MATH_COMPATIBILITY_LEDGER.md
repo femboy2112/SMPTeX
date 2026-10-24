@@ -13,6 +13,7 @@
 | T00–T21 on GitHub repository Markdown | **PASS — USER-REPORTED VISUAL OBSERVATION (22/22 phone; 22/22 PC)** | User report dated 2026-10-23 EDT; [test card](GITHUB_MATH_TEST_CARD.md) | Exact viewed SHA, browser versions and screenshots not provided; not independently re-observed by assistant |
 | GitHub Android-app view of T00–T21 card | **PRESENTATION CONCERN — USER REPORT + SCREENSHOT** | User-supplied long Android app screenshot, 2026-10-23 EDT | Capture is only 72 px wide after attachment processing; no per-strip render failures or root cause demonstrated; app version/commit unknown |
 | P00–P05 A/B on mobile repository Markdown | **VISUALLY OBSERVED**: P00/P02/P04 PASS, P01/P03/P05 FAIL | Screenshot supplied Oct 23 2026 EDT; [probe](probes/OPERATORNAME_AB.md) | Client and viewed SHA not visible; wiki/PR/desktop unverified |
+| Static PNG image fallback on GitHub Android | **UNVERIFIED ON DEVICE — GENERATED REFERENCE** | [Mobile fallback](MOBILE_APP_FALLBACK.md); built from T00–T21 with source and PNG digests | Math in PNG images can display even when the Markdown TeX parser is absent; PNG display is never a native math-render pass |
 | Mathematical semantics of outside research correct | NOT TESTED BY SMPTeX | Requires independent mathematical analysis | Correct appearance does not prove correctness |
 
 ## Evidence records
