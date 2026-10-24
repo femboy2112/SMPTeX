@@ -108,6 +108,19 @@ class MathGuardTests(unittest.TestCase):
         self.assertTrue(any(e.code == "UNCERTIFIED_MACRO" for e in errors(r"$\operatorname{rank}(A)$")))
         self.assertEqual(errors(r"$\operatorname{rank}(A)$", strict=False), [])
 
+    def test_observed_operator_ab_contexts(self):
+        # Regression coverage for the three observed GitHub Markdown contexts.
+        contexts = (
+            ("inline", r"$\mathrm{rank}(A)=2$", r"$\operatorname{rank}(A)=2$"),
+            ("display", "$\n\\mathrm{rank}(A)=2\n$", "$\n\\operatorname{rank}(A)=2\n$"),
+            ("math fence", "```math\n\\mathrm{rank}(A)=2\n```", "```math\n\\operatorname{rank}(A)=2\n```"),
+        )
+        for name, control, challenge in contexts:
+            with self.subTest(context=name):
+                self.assertEqual(errors(control), [])
+                self.assertEqual(errors(challenge, strict=False), [])
+                self.assertTrue(any(e.code == "UNCERTIFIED_MACRO" for e in errors(challenge)))
+
     def test_portable_operator(self):
         self.assertEqual(errors(r"$\mathrm{rank}(A)$"), [])
 

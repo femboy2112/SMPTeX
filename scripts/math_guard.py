@@ -101,7 +101,7 @@ class Scanner:
         if re.search(r"\\begin\{(?:tikzcd|diagram|picture)\}", tex):
             self.error(line, "UNSAFE_ENVIRONMENT", "Graphics/diagram LaTeX environments are not in the portable profile")
         if self.strict_portable and re.search(r"\\operatorname(?:\*|\b)", tex):
-            self.error(line, "UNCERTIFIED_MACRO", "Use \\mathrm{...} instead of \\operatorname{...} until verified in your target GitHub surface")
+            self.error(line, "UNCERTIFIED_MACRO", "Use \\mathrm{...} instead of \\operatorname{...} (explicitly rejected on the observed GitHub repository-Markdown surface; other surfaces unverified)")
 
     @staticmethod
     def _blank(text: str, start: int, end: int) -> str:

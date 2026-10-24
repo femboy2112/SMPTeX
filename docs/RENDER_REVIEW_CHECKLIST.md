@@ -37,12 +37,14 @@ Open the two pages in a browser on **GitHub's rendered file view**, not Raw or a
 
 ## Operator macro probe · P00–P05
 
-- [ ] P00 · Inline `\mathrm` control
-- [ ] P01 · Inline `\operatorname` challenge
-- [ ] P02 · Display `\mathrm` control
-- [ ] P03 · Display `\operatorname` challenge
-- [ ] P04 · Math-fence `\mathrm` control
-- [ ] P05 · Math-fence `\operatorname` challenge
+**User screenshot observed 2026-10-23 EDT on mobile repository Markdown.** Checked below means *inspected*, not passed. The screenshot lacks an immutable commit URL or client identifier; [ledger](MATH_COMPATIBILITY_LEDGER.md).
+
+- [x] P00 · Inline `\mathrm` control — **PASS** (user screenshot)
+- [x] P01 · Inline `\operatorname` challenge — **FAIL · macro not allowed** (user screenshot)
+- [x] P02 · Display `\mathrm` control — **PASS** (user screenshot)
+- [x] P03 · Display `\operatorname` challenge — **FAIL · macro not allowed** (user screenshot)
+- [x] P04 · Math-fence `\mathrm` control — **PASS** (user screenshot)
+- [x] P05 · Math-fence `\operatorname` challenge — **FAIL · macro not allowed** (user screenshot)
 
 ## Calibration verdict
 
