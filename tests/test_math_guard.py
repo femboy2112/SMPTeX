@@ -112,7 +112,7 @@ class MathGuardTests(unittest.TestCase):
         # Regression coverage for the three observed GitHub Markdown contexts.
         contexts = (
             ("inline", r"$\mathrm{rank}(A)=2$", r"$\operatorname{rank}(A)=2$"),
-            ("display", "$\n\\mathrm{rank}(A)=2\n$", "$\n\\operatorname{rank}(A)=2\n$"),
+            ("display", "$$\n\\mathrm{rank}(A)=2\n$$", "$$\n\\operatorname{rank}(A)=2\n$$"),
             ("math fence", "```math\n\\mathrm{rank}(A)=2\n```", "```math\n\\operatorname{rank}(A)=2\n```"),
         )
         for name, control, challenge in contexts:
