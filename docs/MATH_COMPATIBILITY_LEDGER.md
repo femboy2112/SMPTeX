@@ -10,7 +10,7 @@
 | GitHub Markdown math uses MathJax | DOCUMENTED | GitHub Math Docs | Package/configuration details may vary |
 | Upstream MathJax documents `\operatorname` | DOCUMENTED UPSTREAM | [MathJax macro list](https://docs.mathjax.org/en/stable/input/tex/macros/) | Not live GitHub visual evidence |
 | SMPTeX guard catches specified syntax failures | SOURCE-CHECKED LOCALLY | `tests/test_math_guard.py`; reproducible commands in README | Not a complete parser |
-| T00–T21 rendered on SMPTeX GitHub Markdown | **UNVERIFIED** | [Current test card](GITHUB_MATH_TEST_CARD.md) | Awaiting independent human visual inspection |
+| T00–T21 on GitHub repository Markdown | **PASS — USER-REPORTED VISUAL OBSERVATION (22/22 phone; 22/22 PC)** | User report dated 2026-10-23 EDT; [test card](GITHUB_MATH_TEST_CARD.md) | Exact viewed SHA, browser versions and screenshots not provided; not independently re-observed by assistant |
 | P00–P05 A/B on mobile repository Markdown | **VISUALLY OBSERVED**: P00/P02/P04 PASS, P01/P03/P05 FAIL | Screenshot supplied Oct 23 2026 EDT; [probe](probes/OPERATORNAME_AB.md) | Client and viewed SHA not visible; wiki/PR/desktop unverified |
 | Mathematical semantics of outside research correct | NOT TESTED BY SMPTeX | Requires independent mathematical analysis | Correct appearance does not prove correctness |
 
@@ -18,7 +18,8 @@
 
 | Date UTC | ID(s) | GitHub surface | Exact file URL + SHA | Source preflight | Actual browser observation | Verdict | Screenshot / repro |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| — | T00–T21 | Repo Markdown | [Test card](GITHUB_MATH_TEST_CARD.md); SHA pending | Locally testable | Not yet inspected | UNVERIFIED | [Review checklist](RENDER_REVIEW_CHECKLIST.md) |
+| 2026-10-23 EDT; time not supplied | T00–T21 | GitHub repo Markdown — phone browser | [Reference source at main@3f1d20d](https://github.com/femboy2112/SMPTeX/blob/3f1d20d5624f0fe32ff60e1016f0039f2aef430f/docs/GITHUB_MATH_TEST_CARD.md); viewed SHA unverified | Existing source preflight | User reports all 22 rendered perfectly | **22/22 PASS · USER-REPORTED** | ChatGPT report; no card screenshot/browser version |
+| 2026-10-23 EDT; time not supplied | T00–T21 | GitHub repo Markdown — PC browser | [Reference source at main@3f1d20d](https://github.com/femboy2112/SMPTeX/blob/3f1d20d5624f0fe32ff60e1016f0039f2aef430f/docs/GITHUB_MATH_TEST_CARD.md); viewed SHA unverified | Existing source preflight | User reports all 22 rendered perfectly | **22/22 PASS · USER-REPORTED** | ChatGPT report; no card screenshot/browser version |
 | 2026-10-24 UTC (Oct 23 EDT) | P00/P02/P04 | Mobile repository Markdown | [Reference fixture at main@da7c846](https://github.com/femboy2112/SMPTeX/blob/da7c8463fce31548414ba476c843722daf81bb7e/docs/probes/OPERATORNAME_AB.md); viewed SHA not shown | Non-strict source check | Upright `rank(A)=2` rendered in all three contexts | **PASS · OBSERVED** | User screenshot provided in conversation; exact client unverified |
 | 2026-10-24 UTC (Oct 23 EDT) | P01/P03/P05 | Mobile repository Markdown | [Reference fixture at main@da7c846](https://github.com/femboy2112/SMPTeX/blob/da7c8463fce31548414ba476c843722daf81bb7e/docs/probes/OPERATORNAME_AB.md); viewed SHA not shown | Non-strict source check | `The following macros are not allowed: operatorname` appears in all three contexts | **FAIL · OBSERVED** | Same-page positive controls pass |
 
@@ -29,8 +30,16 @@
 - **Provenance boundary:** screenshot does not contain full URL, viewed commit, or exact client. Its text matches the reference fixture at `main@da7c846`, but screenshot-to-commit binding remains **UNVERIFIED**. Date is the user-submission date (not embedded on the screen).
 - **Independent historical precedent:** [github/markup #1688](https://github.com/github/markup/issues/1688) reports the same message from 2023. It does not establish behavior for all current GitHub surfaces.
 - **Portable policy:** avoid `\operatorname` in ordinary GitHub-targeted Markdown; use tested `\mathrm` for simple upright words. Operator spacing and limits are different; review any rewrite for mathematical meaning.
-- **Outstanding:** test wiki, Issue/PR comments, desktop clients, other macros, and the T00–T21 test card. Record client and immutable URL in a follow-up run.
+- **Outstanding:** test wiki, Issue/PR comments, desktop operator A/B behavior and other macros. T00–T21 have now been user-reported passing in phone and PC browsers; capture exact client and immutable URL in a follow-up run.
 - **Evidence storage:** original screenshot remains in the user conversation and is not publicly hosted in this repo; a redacted screenshot attachment would strengthen independent reproducibility.
+
+## Test-card observation · O-2026-10-23-CARD-PHONE-PC
+
+- **Raw report:** user stated: 'the 22 card renders perfectly on github from my webbrowser on both phone and pc'.
+- **Scope:** all T00–T21 test strips in SMPTeX GitHub repository Markdown; **22/22 visually PASS on phone** and **22/22 visually PASS on PC**, according to the same user's report.
+- **Provenance:** submitted on 2026-10-23 (America/New_York). The exact viewed commit SHA, browser names/versions, and screenshots of the test card were not supplied. The source link above is a reference fixture, not a verified identification of the viewed revision.
+- **Independence boundary:** phone and PC are two viewing environments but may use the same underlying GitHub MathJax renderer. They are not independent implementations.
+- **Claim boundary:** a visually successful reference card does not prove semantic correctness, untested macro support or wiki/PR/Issue rendering. The separate mobile `\operatorname` A/B challenge remains a documented FAIL.
 
 ## How to change a verdict
 
