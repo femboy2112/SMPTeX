@@ -9,6 +9,7 @@ Applies to the full repository. Read [AGENTS_MATH_PROTOCOL.md](AGENTS_MATH_PROTO
 - The reference [test card](docs/GITHUB_MATH_TEST_CARD.md) uses 22 candidate test strips. A reader must review their *GitHub-rendered* output.
 - [The operator probe](docs/probes/OPERATORNAME_AB.md) deliberately tests a disputed macro. Preserve the experiment and its scope. Never apply a failure conclusion to every MathJax installation without evidence.
 - GitHub document math is a source-format problem plus a rendering problem. Don't claim mathematical proof merely because a symbol displayed correctly.
+- **Do not treat the GitHub Android app as a reference renderer.** T00–T21 were user-reported to pass in phone/PC browsers; the user supplied a poor Android-app capture, but its mechanism and strip-level failures are unresolved. Inspect with a web browser and keep app presentation observations distinct from mathematical or source failures. See [the ledger](docs/MATH_COMPATIBILITY_LEDGER.md).
 
 ## Checks before pushing math changes
 

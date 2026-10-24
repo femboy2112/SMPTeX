@@ -11,6 +11,7 @@
 | Upstream MathJax documents `\operatorname` | DOCUMENTED UPSTREAM | [MathJax macro list](https://docs.mathjax.org/en/stable/input/tex/macros/) | Not live GitHub visual evidence |
 | SMPTeX guard catches specified syntax failures | SOURCE-CHECKED LOCALLY | `tests/test_math_guard.py`; reproducible commands in README | Not a complete parser |
 | T00–T21 on GitHub repository Markdown | **PASS — USER-REPORTED VISUAL OBSERVATION (22/22 phone; 22/22 PC)** | User report dated 2026-10-23 EDT; [test card](GITHUB_MATH_TEST_CARD.md) | Exact viewed SHA, browser versions and screenshots not provided; not independently re-observed by assistant |
+| GitHub Android-app view of T00–T21 card | **PRESENTATION CONCERN — USER REPORT + SCREENSHOT** | User-supplied long Android app screenshot, 2026-10-23 EDT | Capture is only 72 px wide after attachment processing; no per-strip render failures or root cause demonstrated; app version/commit unknown |
 | P00–P05 A/B on mobile repository Markdown | **VISUALLY OBSERVED**: P00/P02/P04 PASS, P01/P03/P05 FAIL | Screenshot supplied Oct 23 2026 EDT; [probe](probes/OPERATORNAME_AB.md) | Client and viewed SHA not visible; wiki/PR/desktop unverified |
 | Mathematical semantics of outside research correct | NOT TESTED BY SMPTeX | Requires independent mathematical analysis | Correct appearance does not prove correctness |
 
@@ -20,6 +21,8 @@
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 2026-10-23 EDT; time not supplied | T00–T21 | GitHub repo Markdown — phone browser | [Reference source at main@3f1d20d](https://github.com/femboy2112/SMPTeX/blob/3f1d20d5624f0fe32ff60e1016f0039f2aef430f/docs/GITHUB_MATH_TEST_CARD.md); viewed SHA unverified | Existing source preflight | User reports all 22 rendered perfectly | **22/22 PASS · USER-REPORTED** | ChatGPT report; no card screenshot/browser version |
 | 2026-10-23 EDT; time not supplied | T00–T21 | GitHub repo Markdown — PC browser | [Reference source at main@3f1d20d](https://github.com/femboy2112/SMPTeX/blob/3f1d20d5624f0fe32ff60e1016f0039f2aef430f/docs/GITHUB_MATH_TEST_CARD.md); viewed SHA unverified | Existing source preflight | User reports all 22 rendered perfectly | **22/22 PASS · USER-REPORTED** | ChatGPT report; no card screenshot/browser version |
+| 2026-10-23 EDT; time not supplied | T00–T21 page | GitHub Android app (not phone browser) | [Reference source at main@0ac5091](https://github.com/femboy2112/SMPTeX/blob/0ac509184bba5f95cdfab749f8536712ac285ccd/docs/GITHUB_MATH_TEST_CARD.md); viewed SHA unverified | Same repository math source; no app-targeted static check | User reports bad app presentation; supplied long screenshot is cramped / difficult to inspect | **APP UX CONCERN · USER-REPORTED; STRIP FAILURES UNVERIFIED** | User screenshot in conversation; app version unknown; capture/attachment downscaling may affect readability |
+
 | 2026-10-24 UTC (Oct 23 EDT) | P00/P02/P04 | Mobile repository Markdown | [Reference fixture at main@da7c846](https://github.com/femboy2112/SMPTeX/blob/da7c8463fce31548414ba476c843722daf81bb7e/docs/probes/OPERATORNAME_AB.md); viewed SHA not shown | Non-strict source check | Upright `rank(A)=2` rendered in all three contexts | **PASS · OBSERVED** | User screenshot provided in conversation; exact client unverified |
 | 2026-10-24 UTC (Oct 23 EDT) | P01/P03/P05 | Mobile repository Markdown | [Reference fixture at main@da7c846](https://github.com/femboy2112/SMPTeX/blob/da7c8463fce31548414ba476c843722daf81bb7e/docs/probes/OPERATORNAME_AB.md); viewed SHA not shown | Non-strict source check | `The following macros are not allowed: operatorname` appears in all three contexts | **FAIL · OBSERVED** | Same-page positive controls pass |
 
@@ -40,6 +43,14 @@
 - **Provenance:** submitted on 2026-10-23 (America/New_York). The exact viewed commit SHA, browser names/versions, and screenshots of the test card were not supplied. The source link above is a reference fixture, not a verified identification of the viewed revision.
 - **Independence boundary:** phone and PC are two viewing environments but may use the same underlying GitHub MathJax renderer. They are not independent implementations.
 - **Claim boundary:** a visually successful reference card does not prove semantic correctness, untested macro support or wiki/PR/Issue rendering. The separate mobile `\operatorname` A/B challenge remains a documented FAIL.
+
+## GitHub Android app observation · O-2026-10-23-ANDROID-APP
+
+- **Raw input:** user supplied a scrolling screenshot described as coming from the **GitHub Android app** and explicitly reported the experience as poor. The supplied image is extremely narrow and compressed at 72 × 1536 pixels, which makes the presentation difficult to audit.
+- **Distinguishing control:** the same T00–T21 test card was **user-reported 22/22 visually PASS** in both phone and PC **web browsers**. The native Android app and the phone browser are **different rendering/presentation surfaces**.
+- **Unresolved mechanism:** the screenshot alone does not isolate an app MathJax bug, viewport/layout CSS failure, long-screenshot stitching, or upload/image downsampling. No individual strip should be marked as a failed TeX render on this evidence.
+- **Policy:** **do not use the GitHub Android app as the visual certification reference for SMPTeX**; use the rendered page in a real web browser. Keep app behavior separately marked as an **uncertified / presentation-degraded user report**.
+- **Provenance:** screenshot supplied in conversation (not uploaded into this public repository); exact viewed commit, app build number, and screenshot capture parameters are unavailable.
 
 ## How to change a verdict
 
