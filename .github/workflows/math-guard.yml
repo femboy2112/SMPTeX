@@ -1,0 +1,46 @@
+name: SMPTeX source preflight
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '**/*.md'
+      - '**/*.markdown'
+      - '**/*.mdown'
+      - 'assets/smptex-test-pattern.svg'
+      - 'scripts/math_guard.py'
+      - 'tests/**'
+      - '.github/workflows/math-guard.yml'
+  pull_request:
+    paths:
+      - '**/*.md'
+      - '**/*.markdown'
+      - '**/*.mdown'
+      - 'assets/smptex-test-pattern.svg'
+      - 'scripts/math_guard.py'
+      - 'tests/**'
+      - '.github/workflows/math-guard.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: smptex-preflight-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Unit tests and mutation controls
+        run: python -m unittest discover -s tests -v
+      - name: Strict-portable Markdown source check
+        run: python scripts/math_guard.py . --strict-portable --exclude docs/probes/OPERATORNAME_AB.md
+      - name: Non-strict syntax check of the intentional live A/B probe
+        run: python scripts/math_guard.py docs/probes/OPERATORNAME_AB.md
