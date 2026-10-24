@@ -11,6 +11,8 @@ Applies to the full repository. Read [AGENTS_MATH_PROTOCOL.md](AGENTS_MATH_PROTO
 - GitHub document math is a source-format problem plus a rendering problem. Don't claim mathematical proof merely because a symbol displayed correctly.
 - **Do not treat the GitHub Android app as a reference renderer.** T00–T21 were user-reported to pass in phone/PC browsers; the user supplied a poor Android-app capture, but its mechanism and strip-level failures are unresolved. Inspect with a web browser and keep app presentation observations distinct from mathematical or source failures. See [the ledger](docs/MATH_COMPATIBILITY_LEDGER.md).
 
+- Keep the [mobile image fallback](docs/MOBILE_APP_FALLBACK.md) derived from the 22 live math strips; after generated images exist, `python scripts/mobile_fallback.py` must validate source/image SHA-256 checksums. Static images are *never* a MathJax browser certification.
+
 ## Checks before pushing math changes
 
 ```bash

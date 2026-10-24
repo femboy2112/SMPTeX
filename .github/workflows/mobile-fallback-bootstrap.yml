@@ -1,0 +1,51 @@
+name: Generate Android PNG snapshots (scoped bootstrap)
+on:
+  push:
+    branches:
+      - fix/github-mobile-math-fallback-2026-10-23
+    paths:
+      - '.github/workflows/mobile-fallback-bootstrap.yml'
+      - 'scripts/mobile_fallback.py'
+      - 'scripts/render_mathjax_svg.cjs'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: smptex-android-fallback-bootstrap
+  cancel-in-progress: false
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned optional image-rendering dependencies
+        run: |
+          npm install --no-save --package-lock=false mathjax-full@3.2.1
+          python -m pip install --disable-pip-version-check "Pillow==12.3.0" "CairoSVG==2.8.2"
+      - name: Build snapshots from the unmodified 22 math strips
+        run: |
+          python scripts/mobile_fallback.py --build
+          python scripts/mobile_fallback.py
+          python -m unittest discover -s tests -v
+          python scripts/math_guard.py . --strict-portable --exclude docs/probes/OPERATORNAME_AB.md
+          python scripts/math_guard.py docs/probes/OPERATORNAME_AB.md
+      - name: Commit generated PNG images and provenance manifest on research branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/mobile/manifest.json assets/mobile/t*.png
+          if ! git diff --cached --quiet; then
+            git commit -m "assets: generate 22 source-matched Android math snapshots"
+            git push origin HEAD:fix/github-mobile-math-fallback-2026-10-23
+          fi

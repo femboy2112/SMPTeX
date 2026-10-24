@@ -9,6 +9,9 @@ on:
       - '**/*.mdown'
       - 'assets/smptex-test-pattern.svg'
       - 'scripts/math_guard.py'
+      - 'scripts/mobile_fallback.py'
+      - 'scripts/render_mathjax_svg.cjs'
+      - 'assets/mobile/**'
       - 'tests/**'
       - '.github/workflows/math-guard.yml'
   pull_request:
@@ -18,6 +21,9 @@ on:
       - '**/*.mdown'
       - 'assets/smptex-test-pattern.svg'
       - 'scripts/math_guard.py'
+      - 'scripts/mobile_fallback.py'
+      - 'scripts/render_mathjax_svg.cjs'
+      - 'assets/mobile/**'
       - 'tests/**'
       - '.github/workflows/math-guard.yml'
   workflow_dispatch:

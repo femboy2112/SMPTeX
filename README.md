@@ -12,6 +12,8 @@
 
 [**🧪 Open the live math test card**](docs/GITHUB_MATH_TEST_CARD.md) · [**🔍 Inspect the `\operatorname` A/B probe**](docs/probes/OPERATORNAME_AB.md) · [**📋 Rendering review checklist**](docs/RENDER_REVIEW_CHECKLIST.md) · [**📒 Compatibility ledger**](docs/MATH_COMPATIBILITY_LEDGER.md)
 
+**Need the actual formulas in GitHub Android?** [Open the PNG fallback card](docs/MOBILE_APP_FALLBACK.md). We have now rendered mathematics into pictures for the application that hosts source code. **Displaying a PNG does not certify native LaTeX support.** [Upstream patch proposal](docs/GITHUB_MOBILE_UPSTREAM_REPORT.md).
+
 ## Why this exists
 
 Mathematically valid TeX can still produce broken GitHub Markdown. A local parser, an upstream macro list, and GitHub's rendered page answer **different questions**. SMPTeX deliberately keeps those observations separate:
