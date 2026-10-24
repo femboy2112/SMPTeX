@@ -16,7 +16,7 @@
 
 ## Evidence records
 
-| Date UTC | ID(s) | GitHub surface | Exact file URL + SHA | Source preflight | Actual browser observation | Verdict | Screenshot / repro |
+| Date / timezone | ID(s) | GitHub surface | Reference file / provenance | Source preflight | Actual browser observation | Verdict | Screenshot / repro |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 2026-10-23 EDT; time not supplied | T00–T21 | GitHub repo Markdown — phone browser | [Reference source at main@3f1d20d](https://github.com/femboy2112/SMPTeX/blob/3f1d20d5624f0fe32ff60e1016f0039f2aef430f/docs/GITHUB_MATH_TEST_CARD.md); viewed SHA unverified | Existing source preflight | User reports all 22 rendered perfectly | **22/22 PASS · USER-REPORTED** | ChatGPT report; no card screenshot/browser version |
 | 2026-10-23 EDT; time not supplied | T00–T21 | GitHub repo Markdown — PC browser | [Reference source at main@3f1d20d](https://github.com/femboy2112/SMPTeX/blob/3f1d20d5624f0fe32ff60e1016f0039f2aef430f/docs/GITHUB_MATH_TEST_CARD.md); viewed SHA unverified | Existing source preflight | User reports all 22 rendered perfectly | **22/22 PASS · USER-REPORTED** | ChatGPT report; no card screenshot/browser version |
