@@ -1,6 +1,6 @@
 # SMPTeX · GitHub Math Rendering Test Card
 
-**Purpose:** a repeatable, repository-local calibration target for Codex, Claude, and other agents writing mathematics for GitHub Markdown. **Reference renderer:** GitHub's MathJax-backed Markdown UI. **Current verification state:** candidate reference patterns, not yet visually certified on your repository and wiki.
+**Purpose:** a repeatable, repository-local calibration target for Codex, Claude, and other agents writing mathematics for GitHub Markdown. **Reference renderer:** GitHub's MathJax-backed Markdown UI. **Current verification state:** All **22/22 test strips** are **user-reported visually passing** in GitHub repository Markdown on both phone and PC browsers (2026-10-23 EDT). The viewed commit and browser versions were not supplied. Wiki, PR and Issue surfaces remain unverified; see the [ledger](MATH_COMPATIBILITY_LEDGER.md).
 
 **How to read this card:** each numbered strip is a distinct parsing/rendering challenge. The **display** immediately below each heading should appear as mathematical notation, **not** as raw TeX commands. Compare the live GitHub page with its source and the expected appearance. If something fails, record the strip ID, file URL, surface (repository Markdown, PR, or wiki), and commit in [the compatibility ledger](MATH_COMPATIBILITY_LEDGER.md).
 
@@ -209,7 +209,7 @@ The literal price is <span>$</span>100. The numerical expression is $100/2=50$.
 
 ## Experimental channel · Operator macro discrimination
 
-MathJax's published command list includes the AMS macro shown here, but the *target GitHub page* is the actual instrument. This is **not** a certified pass. Test the following two candidates **side by side in the live GitHub renderer** using [the executable A/B probe](probes/OPERATORNAME_AB.md):
+MathJax's published command list includes the AMS macro shown here, but the *target GitHub page* is the actual instrument. The operator challenge was **observed failing on GitHub mobile repository Markdown**, not necessarily on other GitHub surfaces. Test the following two candidates **side by side in the live GitHub renderer** using [the executable A/B probe](probes/OPERATORNAME_AB.md):
 
 ```text
 Control:    $\mathrm{rank}(A)=2$
@@ -231,6 +231,6 @@ Bare TeX:         The equation is \frac{1}{2}.
 Nonportable:      $\newcommand{\foo}{x}$
 ```
 
-**Do not treat this file as proof of rendering.** Passing the source linter only shows that specified source errors were not found. On-GitHub visual confirmation, and a separate semantic mathematics review, remain necessary.
+**Calibration scope:** T00–T21 are visually confirmed by the user's report for GitHub repository Markdown on phone and PC. This does not certify future changes, other rendering surfaces, or mathematical semantics. Source linter success alone remains insufficient for a render claim.
 
 Source documentation: [GitHub math syntax](https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/writing-mathematical-expressions) and [MathJax supported commands](https://docs.mathjax.org/en/stable/input/tex/macros/).
