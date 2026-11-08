@@ -41,6 +41,25 @@ The guard is a lightweight source checker, not a complete TeX or Markdown parser
 
 The experimental probe is **intentionally exempt from the strict macro-policy check**, but it still passes the non-strict source checker; this lets us test a disputed command without teaching agents to use it in ordinary documents.
 
+For a changed repository Markdown file, an optional observation-based check is:
+
+```bash
+python scripts/math_guard.py docs/GITHUB_MATH_TEST_CARD.md --profile repository-preview --json
+```
+
+Replace the path with the file being reviewed. The default profile is `source`;
+JSON includes the selected `profile`. The opt-in profile reports possible
+render risks and exits nonzero when it finds one; it is not a render verdict.
+For example, the current card's T07 matrix receives a row-separator warning
+even though its particular two-row render was observed to pass. Inspect the
+actual target before changing notation. Intentional negative fixtures in
+`docs/probes/PUNCTUATION_CONTEXT.md` and `docs/probes/MARKDOWN_CONTEXT_MATRIX.md`
+are expected to raise these findings; keep their separate default source checks.
+The evidence applies to the tested desktop repository Preview, not a blanket
+Wiki, mobile browser, or native Android certification. See the
+[scanner boundary](docs/SCANNER_CONTEXT_BOUNDARY.md) and
+[ledger](docs/MATH_COMPATIBILITY_LEDGER.md).
+
 ## Install the math contract in another repository
 
 - Follow [agent installation instructions](INSTALLATION_PROMPT.md), preserving that repository's existing rules and branch history.
@@ -52,7 +71,7 @@ This repository itself ships with [`AGENTS.md`](AGENTS.md) and [`CLAUDE.md`](CLA
 
 ## What passes and what remains uncertain?
 
-The guard runs locally without nonstdlib dependencies; its test suite includes both valid examples and deliberately broken mutations. **Passing CI is not visual certification.** **T00–T21: 22/22 user-reported PASS on both phone and PC web browsers viewing GitHub repository Markdown (reported 2026-10-23 EDT).** Browser versions, screenshots of the card, and exact viewed commit were not supplied; see the [ledger](docs/MATH_COMPATIBILITY_LEDGER.md). In the **2026-10-23 mobile repository-Markdown A/B screenshot**, `\mathrm` passed in all three contexts, while `\operatorname` produced GitHub's explicit **"The following macros are not allowed: operatorname"** error in inline, display, and `math`-fence contexts. This is an observation on the tested surface, not a universal MathJax incompatibility. [See the evidence ledger](docs/MATH_COMPATIBILITY_LEDGER.md). Other GitHub surfaces (wiki, PR/Issue comments), desktop operator A/B behavior and independent mathematical semantic verification remain unverified.
+The guard runs locally without nonstdlib dependencies; its test suite includes both valid examples and deliberately broken mutations. **Passing CI is not visual certification.** **T00–T21: 22/22 user-reported PASS on both phone and PC web browsers viewing GitHub repository Markdown (reported 2026-10-23 EDT).** Browser versions, screenshots of the card, and exact viewed commit were not supplied; see the [ledger](docs/MATH_COMPATIBILITY_LEDGER.md). In the **2026-10-23 mobile repository-Markdown A/B screenshot**, `\mathrm` passed in all three contexts, while `\operatorname` produced GitHub's explicit **"The following macros are not allowed: operatorname"** error in inline, display, and `math`-fence contexts. This is an observation on the tested surface, not a universal MathJax incompatibility. [See the evidence ledger](docs/MATH_COMPATIBILITY_LEDGER.md). Those operator observations do not establish behavior on other surfaces; consult the ledger for separately scoped Wiki matrix observations. PR/Issue operator behavior and independent mathematical semantic verification remain unverified. A later pinned desktop repository Preview observation found T09 spacing and T14 braces corrupted at an earlier revision; the current card moves their unchanged formulas to math fences, which were observed to render correctly in a later pinned Preview. Some font-variant glyphs remained visually ambiguous at the available scale.
 
 **Reference specifications:** [GitHub's official mathematical expressions guide](https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/writing-mathematical-expressions) · [MathJax supported TeX commands](https://docs.mathjax.org/en/stable/input/tex/macros/)
 

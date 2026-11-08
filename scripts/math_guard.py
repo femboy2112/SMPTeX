@@ -34,9 +34,12 @@ class Issue:
 
 
 class Scanner:
-    def __init__(self, path: str, strict_portable: bool = False):
+    def __init__(self, path: str, strict_portable: bool = False, profile: str = "source"):
+        if profile not in {"source", "repository-preview"}:
+            raise ValueError(f"Unknown surface profile: {profile}")
         self.path = path
         self.strict_portable = strict_portable
+        self.profile = profile
         self.issues: list[Issue] = []
 
     def error(self, line: int, code: str, message: str) -> None:
@@ -49,7 +52,7 @@ class Scanner:
             k -= 1
         return ((pos - k - 1) % 2) == 1
 
-    def math(self, tex: str, line: int, in_table: bool = False) -> None:
+    def math(self, tex: str, line: int, in_table: bool = False, context: str = "unknown") -> None:
         if not tex.strip():
             self.error(line, "EMPTY_MATH", "Empty math expression")
             return
@@ -96,6 +99,11 @@ class Scanner:
         env_stack: list[tuple[str, int]] = []
         delimiter_stack: list[int] = []
         for command, pos in commands:
+            if self.profile == "repository-preview":
+                if context in {"plain-inline", "dollar-display"} and command in {",", "{", "}"}:
+                    self.error(at(pos), "REPO_PREVIEW_PUNCTUATION", f"Control symbol \\{command} corrupted a matched example in repository Preview in this delimiter context; inspect the target render or use protected inline / a math fence while preserving the TeX")
+                elif context == "dollar-display" and command == "\\":
+                    self.error(at(pos), "REPO_PREVIEW_ROW_SEPARATOR", "A matched matrix row separator failed in an isolated dollar display in repository Preview; inspect rows and columns or use a verified math fence")
             if command in {"begin", "end"}:
                 match = re.match(r"\s*\{([A-Za-z][A-Za-z0-9*]*)\}", tex[pos + len(command) + 1:])
                 if match:
@@ -160,7 +168,7 @@ class Scanner:
                     self.error(number, "UNTERMINATED_INLINE", "Missing closing backtick-dollar for $`...`$ math")
                     prose = self._blank(prose, i, len(s))
                     break
-                self.math(s[i + 2:end], number, in_table=in_table)
+                self.math(s[i + 2:end], number, in_table=in_table, context="protected-inline")
                 prose = self._blank(prose, i, end + 2)
                 i = end + 2
                 continue
@@ -173,7 +181,7 @@ class Scanner:
                 self.error(number, "UNTERMINATED_INLINE", "Unpaired $; for currency use an escaped dollar or GitHub's <span>$</span> form")
                 prose = self._blank(prose, i, len(s))
                 break
-            self.math(s[i + 1:j], number, in_table=in_table)
+            self.math(s[i + 1:j], number, in_table=in_table, context="plain-inline")
             prose = self._blank(prose, i, j + 1)
             i = j + 1
         if BAD_DELIMITER.search(prose):
@@ -279,6 +287,10 @@ class Scanner:
         for i, ((number, _), text) in enumerate(zip(records, lines)):
             self.inline(text, number, in_table=i in table_rows, code_preprocessed=True)
 
+    @staticmethod
+    def _blank_container_line(line: str) -> bool:
+        return not re.sub(r"^(?: {0,3}> ?)+", "", line).strip()
+
     def scan(self, content: str) -> list[Issue]:
         fence_char = ""
         fence_len = 0
@@ -306,7 +318,7 @@ class Scanner:
             line = raw[len(quote_prefix):]
             if fence_char and (quote_depth < fence_quote or (fence_list and line.strip() and not line.startswith(" " * fence_list))):
                 if is_math_fence:
-                    self.math("\n".join(math_lines), math_start + 1)
+                    self.math("\n".join(math_lines), math_start + 1, context="math-fence")
                 self.error(math_start if is_math_fence else number - 1, "UNTERMINATED_FENCE", "Unclosed Markdown code fence at container boundary")
                 fence_char = ""
                 is_math_fence = False
@@ -314,7 +326,7 @@ class Scanner:
             if comment and (quote_depth < comment_quote or (comment_list and line.strip() and not line.startswith(" " * comment_list))):
                 comment = False
             if display and (quote_depth < display_quote or (display_list and line.strip() and not line.startswith(" " * display_list))):
-                self.math("\n".join(display_lines), display_start + 1)
+                self.math("\n".join(display_lines), display_start + 1, context="dollar-display")
                 self.error(display_start, "UNTERMINATED_DISPLAY", "Missing closing $$ before container boundary")
                 display = False
                 display_lines = []
@@ -340,7 +352,7 @@ class Scanner:
                         and len(fence.group(1)) >= fence_len
                         and not fence.group(2).strip()):
                     if is_math_fence:
-                        self.math("\n".join(math_lines), math_start + 1)
+                        self.math("\n".join(math_lines), math_start + 1, context="math-fence")
                     fence_char = ""
                     is_math_fence = False
                     math_lines = []
@@ -349,10 +361,20 @@ class Scanner:
                 continue
             if display:
                 if ISOLATED_DISPLAY.match(line):
-                    self.math("\n".join(display_lines), display_start + 1)
+                    self.math("\n".join(display_lines), display_start + 1, context="dollar-display")
+                    if self.profile == "repository-preview" and number < len(raw_lines) and not self._blank_container_line(raw_lines[number]):
+                        self.error(number, "REPO_PREVIEW_DISPLAY_BOUNDARY", "An adjacent-prose challenge rendered literal delimiters in repository Preview; separate the display with blank lines and inspect the target")
                     display = False
                     display_lines = []
                 else:
+                    if self.profile == "repository-preview":
+                        display_source = raw
+                        for _ in range(display_quote):
+                            display_source = re.sub(r"^ {0,3}> ?", "", display_source, count=1)
+                        if display_list and display_source.startswith(" " * display_list):
+                            display_source = display_source[display_list:]
+                        if re.match(r"^ {0,3}(?:=+[ \t]*$|(?:-[ \t]*){3,}$|(?:[-+*]|[0-9]{1,9}[.)])[ \t]+|>[ \t]?|#{1,6}(?:[ \t]|$))", display_source):
+                            self.error(number, "REPO_PREVIEW_DISPLAY_BLOCK", "A Markdown-active line in a dollar display split a repository Preview challenge; inspect the source and consider a math fence (this check does not establish TeX validity)")
                     display_lines.append(line)
                 continue
             # Comments are not recognized within same-line code or math.
@@ -437,6 +459,11 @@ class Scanner:
                 records = []
                 display = True
                 display_quote, display_list = quote_depth, list_indent
+                if self.profile == "repository-preview":
+                    if display_list:
+                        self.error(number, "REPO_PREVIEW_LIST_DISPLAY", "A list-contained dollar display rendered as literal text in repository Preview; inspect this list and consider a math fence")
+                    if number > 1 and not self._blank_container_line(raw_lines[number - 2]):
+                        self.error(number, "REPO_PREVIEW_DISPLAY_BOUNDARY", "An adjacent-prose challenge rendered literal delimiters in repository Preview; separate the display with blank lines and inspect the target")
                 display_start = number
                 display_lines = []
                 continue
@@ -455,11 +482,11 @@ class Scanner:
         self._inline_block(records)
         eof = len(content.splitlines()) or 1
         if display:
-            self.math("\n".join(display_lines), display_start + 1)
+            self.math("\n".join(display_lines), display_start + 1, context="dollar-display")
             self.error(display_start, "UNTERMINATED_DISPLAY", "Missing closing $$ on its own line")
         if fence_char:
             if is_math_fence:
-                self.math("\n".join(math_lines), math_start + 1)
+                self.math("\n".join(math_lines), math_start + 1, context="math-fence")
             self.error(math_start if is_math_fence else eof, "UNTERMINATED_FENCE", "Unclosed Markdown code fence")
         return self.issues
 
@@ -487,6 +514,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("paths", nargs="*", default=["."], help="Markdown files or directories to scan")
     p.add_argument("--strict-portable", action="store_true", help="Disallow uncertified macros such as operatorname")
     p.add_argument("--json", action="store_true", help="Emit machine-readable findings")
+    p.add_argument("--profile", choices=("source", "repository-preview"), default="source", help="Surface-specific observations to check; source is the default")
     p.add_argument("--exclude", action="append", default=[], metavar="PATH", help="Exclude an exact repository-relative Markdown path (must be checked separately)")
     args = p.parse_args(argv)
     try:
@@ -510,9 +538,9 @@ def main(argv: list[str] | None = None) -> int:
         except (UnicodeError, OSError) as exc:
             results.append(Issue(str(path), 1, "READ_ERROR", str(exc)))
             continue
-        results.extend(Scanner(str(path), args.strict_portable).scan(content))
+        results.extend(Scanner(str(path), args.strict_portable, profile=args.profile).scan(content))
     if args.json:
-        print(json.dumps({"scanned": scanned, "issues": [asdict(x) for x in results]}, indent=2))
+        print(json.dumps({"profile": args.profile, "scanned": scanned, "issues": [asdict(x) for x in results]}, indent=2))
     else:
         for issue in results:
             print(f"{issue.path}:{issue.line}: {issue.code}: {issue.message}")

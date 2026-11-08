@@ -20,6 +20,16 @@
    ```
 
    The final command checks the committed fallback artifacts if the consumer installs them; it is not a GitHub render test.
+
+   For a changed repository Markdown file, additionally consider
+   `python scripts/math_guard.py path/to/changed.md --profile repository-preview --json`.
+   Replace the example path. This opt-in profile reports conservative risks from
+   observed desktop repository Preview cases and returns nonzero for findings;
+   `source` remains the default and JSON names the selected profile. Review the
+   actual target and intended symbols; a finding is not proof that the source
+   fails there. Intentional render probes are expected to produce profile
+   findings and must still receive separate default source checks. The profile
+   does not certify Wiki, other clients, the native Android app, or mathematics.
 6. Source guard success is **not** a render certificate. For modified math components not covered by a previously observed matching calibration, open the rendered GitHub page after committing on a non-main branch; record its exact URL, commit, and observed status in the ledger. Never claim a visual check if no browser/UI inspection occurred.
 7. After visual certification, separately review **semantic fidelity**: delimiters, quantifier scope, symbols, map direction, domain/codomain, indices, signs, and assumptions. Do not 'fix' a rendering failure by changing the asserted theorem.
 8. When recording a failure, produce a minimal reproducer, a working nearby control, a failing challenge, and a cross-surface note (repo/wiki/PR). Prefer discriminating probes over global bans inferred from one broken example.
