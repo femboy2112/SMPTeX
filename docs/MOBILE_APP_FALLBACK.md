@@ -6,6 +6,8 @@
 
 **Purpose:** this is a static visual reference for environments that do not show live mathematics. Each PNG is rendered from the **exact source mathematics in T00–T21**, not manually retyped. Adjacent expressions separated by presentation spacing have been reflowed into separate lines for legibility.
 
+The image cards reproduce the mathematical expressions only: T19 does not include the surrounding currency sentence, and T21 does not reproduce the three-column table. Use the live card to test those Markdown contexts.
+
 **Boundary:** PNG fallback is **not a fix for GitHub's proprietary Android app**, and a PNG appearing on screen is **not a passing TeX-render test**. Native Android display of these new PNGs has NOT yet been tested.
 
 ## 22 reference images

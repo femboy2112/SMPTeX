@@ -77,6 +77,31 @@ The T09 and T14 PNG fallbacks were inspected separately: their mathematical symb
 - **Policy:** **do not use the GitHub Android app as the visual certification reference for SMPTeX**; use the rendered page in a real web browser. Keep app behavior separately marked as an **uncertified / presentation-degraded user report**.
 - **Provenance:** screenshot supplied in conversation (not uploaded into this public repository); exact viewed commit, app build number, and screenshot capture parameters are unavailable.
 
+## Context challenges · pinned repository Preview · 2026-11-08 UTC
+
+At approximately 05:31–05:32 UTC, logged-out desktop cloud Chrome (exact version unavailable) viewed the [context challenge file at 76bbf9b49048454ec03752790dd343c4a4ab9edb](https://github.com/femboy2112/SMPTeX/blob/76bbf9b49048454ec03752790dd343c4a4ab9edb/docs/probes/MARKDOWN_CONTEXT_MATRIX.md) in GitHub **repository file Preview**. Screenshots and the DOM, including MathML after typesetting, were inspected. The table reports comparison with each stated expectation; failure is specific to that cell. The file deliberately contains negative challenges, including one that is not valid TeX. No native Android app, Issue/PR comment renderer, or Wiki result follows from these observations.
+
+| Case | Observed outcome |
+| --- | --- |
+| C1 plain inline; C2 protected inline | **PASS** on both: x with indices 1 and 2 added together equals y with index 1. MathML contains all three subscript nodes. This does not show every Markdown-active expression is safe in plain inline. |
+| D1 separated dollar display; D3 fenced control | **PASS**: each shows a equals b as a block. |
+| D2 adjacent dollar display | **FAIL**: literal dollar delimiters and a=b remained in a paragraph; there was no math renderer for the cell. |
+| E1 standalone equals line | **FAIL**: GitHub made a setext H1 from the opening delimiter and A; B and the closing delimiter remained literal. |
+| E2 fenced control | **PASS**: A followed by = B in two MathML table rows. It is a layout control, not an identical source-line contrast. |
+| E3 heading-like line | **BLOCKED BEFORE TeX**: the invalid bare parameter-marker challenge became an H1 for B, with literal delimiters, rather than reaching TeX and producing its expected error. This case does not demonstrate a valid TeX formula failing. |
+| E4 rule-like line | **FAIL**: the hyphen line became a setext H2 underline and the display split into literal text. |
+| E5 list-like line | **FAIL**: the list marker produced a list and the delimiters remained literal. |
+| E6 quote-like line | **FAIL**: the quote marker produced a blockquote and the delimiters remained literal. |
+| F1 column-zero; F2 two-space indentation | **PASS**: each shows x equals y in display math. |
+| F3 list-contained display | **FAIL**: the list contains literal dollar delimiters and x=y; no math renderer appeared for that cell. |
+| F4 blockquote-contained display | **PASS**: x equals y appears as display math inside the blockquote. |
+
+E3–E6 have different source tokens and operators, and E3 is deliberately invalid TeX; they are not a matched causal experiment. The separated/adjacent display cases differ in boundary context; E1/E2 differ in line layout as stated in the fixture. Do not extend a cell's verdict to all clients, surfaces, or related syntax.
+
+## SUCC true Wiki matrix contrast · pinned revisions
+
+On 2026-11-08 UTC, logged-out desktop cloud Chrome (version unavailable) also inspected the actual SUCC GitHub Wiki, not a repository directory called wiki. At [The Riemann Connection, revision 84e1ab5495178522aaaf2b3efa4b98e85e8cc3cc](https://github.com/femboy2112/SUCC/wiki/The-Riemann-Connection/84e1ab5495178522aaaf2b3efa4b98e85e8cc3cc), screenshot and post-typesetting MathML showed both intended two-row matrices as single rows of three cells, with a red literal row-spacing command and extra semicolons. At [revision 90e7f4e266915c7de3097c44b4594470524feb06](https://github.com/femboy2112/SUCC/wiki/The-Riemann-Connection/90e7f4e266915c7de3097c44b4594470524feb06), screenshots and MathML showed the symbolic and numeric matrices and the later small matrix as two rows of two cells; the numeric entries are 2, −14, −14, 2, and the determinant −192 is visible. The latest Wiki page history names this latter revision; local Wiki checkout was at ae31f66ad6afd42225f164f5cbce89f6979f6851, and its source at 90e7f4e uses a letter row-break command. Surrounding source and layout also changed across revisions, so this is an observed before/after contrast, not proof that one change alone caused the result or that other Wiki content renders correctly.
+
 ## How to change a verdict
 
 1. Open the exact **GitHub-rendered** page at an immutable commit. Log SHA, URL, UTC date, and browser.

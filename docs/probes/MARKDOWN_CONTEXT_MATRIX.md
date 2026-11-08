@@ -1,6 +1,6 @@
 # Markdown context challenges
 
-These are **intentional render challenges**, not certified authoring patterns. Inspect the whole rendered GitHub file after typesetting. A heading, missing math, visible delimiters, punctuation, or altered symbol counts as a failure. Each cell has the same stated mathematical intent as its control. The outcomes below are **UNVERIFIED** until recorded for a particular commit, GitHub surface and client. This repository file is not a GitHub Wiki page.
+These are **intentional render challenges**, not certified authoring patterns. Inspect the whole rendered GitHub file after typesetting. A heading, missing math, visible delimiters, punctuation, or altered symbol counts as a failure. Each case states its expected content; controls and challenges do not always have the same source or line structure. The outcomes below are **UNVERIFIED** until recorded for a particular commit, GitHub surface and client. This repository file is not a GitHub Wiki page.
 
 The companion punctuation-context probe covers spacing commands, escaped literal braces, matrix row separators, and raw angle characters across contexts. The cases here cover the other report mechanisms. They are reduced tests of presentation, not mathematical claims.
 
