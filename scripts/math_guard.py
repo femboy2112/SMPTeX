@@ -16,7 +16,6 @@ from typing import Iterable
 
 FENCE = re.compile(r"^ {0,3}(`{3,}|~{3,})([^\n]*)$")
 ISOLATED_DISPLAY = re.compile(r"^\s*\$\$\s*$")
-ENV_TOKEN = re.compile(r"\\(begin|end)\{([A-Za-z][A-Za-z0-9*]*)\}")
 PROSE_TEX = re.compile(r"(?<!\\)\\(?:frac|sqrt|sum|prod|int|mathbb|mathcal|begin|operatorname|lim|left|right)\b")
 BAD_DELIMITER = re.compile(r"(?<!\\)\\[\[(]")
 UNSAFE = (
@@ -56,16 +55,32 @@ class Scanner:
             return
         if in_table and "|" in tex:
             self.error(line, "TABLE_PIPE", "Raw pipe inside table math may split Markdown cells; use \\mid, \\lvert/\\rvert, or move the equation outside the table")
-        # Brace check, ignoring escaped literal braces (not TeX control groups).
+        # TeX control words and control symbols consume their characters as a
+        # unit. A pair of backslashes is a row break: the next brace
+        # groups. An additional backslash instead makes that brace literal.
         stack: list[int] = []
+        def at(pos: int) -> int:
+            return line + tex.count("\n", 0, pos)
+
+        commands: list[tuple[str, int]] = []
         i = 0
         while i < len(tex):
             ch = tex[i]
-            if ch == "\\" and i + 1 < len(tex):
-                if tex[i + 1] in "{}":
-                    i += 2
-                    continue
+            if ch == "%":
+                end = tex.find("\n", i)
+                i = len(tex) if end < 0 else end + 1
+                continue
+            if ch == "\\":
+                start = i
                 i += 1
+                if i == len(tex):
+                    break
+                if tex[i].isascii() and tex[i].isalpha():
+                    while i < len(tex) and tex[i].isascii() and tex[i].isalpha():
+                        i += 1
+                else:
+                    i += 1
+                commands.append((tex[start + 1:i], start))
                 continue
             if ch == "{":
                 stack.append(i)
@@ -73,35 +88,43 @@ class Scanner:
                 if stack:
                     stack.pop()
                 else:
-                    self.error(line, "BRACES", "Unexpected closing brace in math")
+                    self.error(at(i), "BRACES", "Unexpected closing brace in math")
             i += 1
-        if stack:
-            self.error(line, "BRACES", f"Unclosed opening brace(s): {len(stack)}")
+        for pos in stack:
+            self.error(at(pos), "BRACES", "Unclosed opening brace in math")
 
-        env_stack: list[str] = []
-        for token in ENV_TOKEN.finditer(tex):
-            action, name = token.groups()
-            if action == "begin":
-                env_stack.append(name)
-            elif not env_stack or env_stack[-1] != name:
-                self.error(line, "ENVIRONMENT", f"Unmatched end of {name!r} environment")
-            else:
-                env_stack.pop()
-        if env_stack:
-            self.error(line, "ENVIRONMENT", f"Unclosed environment(s): {', '.join(env_stack)}")
-
-        left = len(re.findall(r"\\left(?=[\s\\().|\[\]{}<>])", tex))
-        right = len(re.findall(r"\\right(?=[\s\\().|\[\]{}<>])", tex))
-        if left != right:
-            self.error(line, "LEFT_RIGHT", f"Unbalanced TeX delimiters: {left} left / {right} right")
-
-        for macro in UNSAFE:
-            if re.search(r"\\" + re.escape(macro) + r"(?![A-Za-z])", tex):
-                self.error(line, "UNSAFE_MACRO", f"\\{macro} is outside the portable authoring policy")
-        if re.search(r"\\begin\{(?:tikzcd|diagram|picture)\}", tex):
-            self.error(line, "UNSAFE_ENVIRONMENT", "Graphics/diagram LaTeX environments are not in the portable profile")
-        if self.strict_portable and re.search(r"\\operatorname(?:\*|\b)", tex):
-            self.error(line, "UNCERTIFIED_MACRO", "Use \\mathrm{...} instead of \\operatorname{...} (explicitly rejected on the observed GitHub repository-Markdown surface; other surfaces unverified)")
+        env_stack: list[tuple[str, int]] = []
+        delimiter_stack: list[int] = []
+        for command, pos in commands:
+            if command in {"begin", "end"}:
+                match = re.match(r"\s*\{([A-Za-z][A-Za-z0-9*]*)\}", tex[pos + len(command) + 1:])
+                if match:
+                    name = match.group(1)
+                    if command == "begin":
+                        env_stack.append((name, pos))
+                    elif not env_stack or env_stack[-1][0] != name:
+                        self.error(at(pos), "ENVIRONMENT", f"Unmatched end of {name!r} environment")
+                    else:
+                        env_stack.pop()
+                    if command == "begin" and name in {"tikzcd", "diagram", "picture"}:
+                        self.error(at(pos), "UNSAFE_ENVIRONMENT", "Graphics/diagram LaTeX environments are not in the portable profile")
+                else:
+                    self.error(at(pos), "ENVIRONMENT", f"Missing or malformed environment name after \\{command}")
+            if command == "left":
+                delimiter_stack.append(pos)
+            elif command == "right":
+                if delimiter_stack:
+                    delimiter_stack.pop()
+                else:
+                    self.error(at(pos), "LEFT_RIGHT", "Unexpected \\right before \\left")
+            if command in UNSAFE:
+                self.error(at(pos), "UNSAFE_MACRO", f"\\{command} is outside the portable authoring policy")
+            if self.strict_portable and command == "operatorname":
+                self.error(at(pos), "UNCERTIFIED_MACRO", "Use \\mathrm{...} instead of \\operatorname{...} (explicitly rejected on the observed GitHub repository-Markdown surface; other surfaces unverified)")
+        for name, pos in env_stack:
+            self.error(at(pos), "ENVIRONMENT", f"Unclosed environment: {name}")
+        for pos in delimiter_stack:
+            self.error(at(pos), "LEFT_RIGHT", "Unclosed \\left delimiter")
 
     @staticmethod
     def _blank(text: str, start: int, end: int) -> str:
@@ -174,7 +197,7 @@ class Scanner:
                         and len(fence.group(1)) >= fence_len
                         and not fence.group(2).strip()):
                     if is_math_fence:
-                        self.math("\n".join(math_lines), math_start)
+                        self.math("\n".join(math_lines), math_start + 1)
                     fence_char = ""
                     is_math_fence = False
                     math_lines = []
@@ -183,7 +206,7 @@ class Scanner:
                 continue
             if display:
                 if ISOLATED_DISPLAY.match(line):
-                    self.math("\n".join(display_lines), display_start)
+                    self.math("\n".join(display_lines), display_start + 1)
                     display = False
                     display_lines = []
                 else:
