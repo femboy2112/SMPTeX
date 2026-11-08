@@ -1,6 +1,6 @@
 # SMPTeX · GitHub Math Rendering Test Card
 
-**Purpose:** a repeatable, repository-local calibration target for Codex, Claude, and other agents writing mathematics for GitHub Markdown. **Reference renderer:** GitHub's MathJax-backed Markdown UI. **Current verification state:** All **22/22 test strips** are **user-reported visually passing** in GitHub repository Markdown on both phone and PC browsers (2026-10-23 EDT). The viewed commit and browser versions were not supplied. Wiki, PR and Issue surfaces remain unverified; see the [ledger](MATH_COMPATIBILITY_LEDGER.md).
+**Purpose:** a repeatable, repository-local calibration target for Codex, Claude, and other agents writing mathematics for GitHub Markdown. **Reference renderer:** GitHub's MathJax-backed Markdown UI. **Current verification state:** All **22/22 test strips** are **user-reported visually passing** in GitHub repository Markdown on both phone and PC browsers (2026-10-23 EDT). The viewed commit and browser versions were not supplied. The viewed revision was unspecified; a later pinned desktop observation found T09 and T14 failures at 84cbf0a. Their delimiters have since been changed and the revised card remains unverified until checked at its own revision. Wiki, PR and Issue surfaces remain unverified; see the [ledger](MATH_COMPATIBILITY_LEDGER.md).
 
 > **⚠️ GITHUB'S ANDROID APP IS TRASH AS A MATH CALIBRATION REFERENCE.** The phone **web browser** and PC **web browser** passed T00–T21 (22/22 each, user report); an Android GitHub-app screenshot instead shows an extremely cramped, difficult-to-assess presentation. **Inspect in a browser.** The app observation is not an itemized TeX-parser failure, and long-screenshot scaling may contribute. [Surface ledger](MATH_COMPATIBILITY_LEDGER.md).
 
@@ -92,10 +92,10 @@ x^2, & x\geq 0,\\
 
 ## T09 · Analysis · Limits, integrals, derivatives
 
-$$
+```math
 \lim_{h\to 0}\frac{f(x+h)-f(x)}{h}=f'(x),
 \qquad \int_0^1 x^2\,dx=\frac13
-$$
+```
 
 **Expect:** a limit with a lower condition, an integral, and a differential with appropriate spacing.
 
@@ -137,10 +137,10 @@ $$
 
 ## T14 · Quantifiers, implications, sets
 
-$$
+```math
 \forall x\in X,\quad P(x)\Rightarrow Q(x),
 \qquad \{x\in X\mid P(x)\}\subseteq X
-$$
+```
 
 **Expect:** universal quantifier, implication, literal set braces, membership, and subset-or-equal.
 
