@@ -12,7 +12,7 @@ try{
  ({AllPackages}=require('mathjax-full/js/input/tex/AllPackages.js'));
 }catch(e){process.stderr.write('Install optional mathjax-full@3.2.1\n');process.exit(2)}
 const adaptor=liteAdaptor();RegisterHTMLHandler(adaptor);
-const document=mathjax.document('',{InputJax:new TeX({packages:AllPackages}),
+const document=mathjax.document('',{InputJax:new TeX({packages:AllPackages.filter(name=>name!=='noundefined')}),
                                     OutputJax:new SVG({fontCache:'local'})});
 const input=JSON.parse(fs.readFileSync(0,'utf8'));
 if(!Array.isArray(input.tex)||input.tex.some(s=>typeof s!=='string'))
