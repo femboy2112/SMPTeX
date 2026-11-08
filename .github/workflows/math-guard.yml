@@ -11,6 +11,10 @@ on:
       - 'scripts/math_guard.py'
       - 'scripts/mobile_fallback.py'
       - 'scripts/render_mathjax_svg.cjs'
+      - 'scripts/smoke_mobile_generation.py'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'requirements-generation.txt'
       - 'assets/mobile/**'
       - 'tests/**'
       - '.github/workflows/math-guard.yml'
@@ -23,6 +27,10 @@ on:
       - 'scripts/math_guard.py'
       - 'scripts/mobile_fallback.py'
       - 'scripts/render_mathjax_svg.cjs'
+      - 'scripts/smoke_mobile_generation.py'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'requirements-generation.txt'
       - 'assets/mobile/**'
       - 'tests/**'
       - '.github/workflows/math-guard.yml'
@@ -50,3 +58,21 @@ jobs:
         run: python scripts/math_guard.py . --strict-portable --exclude docs/probes/OPERATORNAME_AB.md
       - name: Non-strict syntax check of the intentional live A/B probe
         run: python scripts/math_guard.py docs/probes/OPERATORNAME_AB.md
+      - name: Validate committed mobile images
+        run: python scripts/mobile_fallback.py
+  generation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: sudo apt-get update && sudo apt-get install -y fonts-dejavu-core libcairo2
+      - run: npm ci
+      - run: python -m pip install -r requirements-generation.txt
+      - name: Generate and validate in disposable space
+        run: python scripts/smoke_mobile_generation.py

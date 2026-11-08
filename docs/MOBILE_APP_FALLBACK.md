@@ -109,10 +109,13 @@ python -m unittest discover -s tests -v
 To regenerate images after changing a live TeX strip (requires Node.js, CairoSVG, Pillow, and MathJax):
 
 ~~~bash
-npm install --no-save --package-lock=false mathjax-full@3.2.1
-python -m pip install 'Pillow==12.3.0' 'CairoSVG==2.8.2'
+npm ci
+python -m pip install -r requirements-generation.txt
+python scripts/smoke_mobile_generation.py
 python scripts/mobile_fallback.py --build
 ~~~
+
+The generation job uses Node 20, Python 3.12, Cairo and DejaVu Sans fonts. The smoke command builds and checks in a temporary directory without changing committed images. The lightweight checker requires the manifest, source-matched links and all 22 PNGs. The source-card extractor rejects HTML comments, raw HTML except the literal-dollar span, non-math fences, indented or quoted content, and multiline code spans in card strips; single-line literal code is opaque. It preserves mixed math delimiter source order. Its reference section deliberately permits only alternating, unindented T00–T21 headings and image paragraphs, and its preamble excludes HTML, code spans and fences; this prevents hidden example links from passing. It validates PNG chunk CRCs, RGB dimensions and decompressed scanlines, and verifies hashes. It does not certify mathematical appearance.
 
 Generated assets and their SHA-256 checksums are recorded in assets/mobile/manifest.json. Regeneration can change pixel digests across environments; **inspect the images visually before committing**. The builder is deliberately scoped to audited local reference TeX, not arbitrary untrusted network Markdown.
 
