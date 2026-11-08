@@ -2,7 +2,7 @@
 
 [← Back to SMPTeX](../README.md) · [Test card](GITHUB_MATH_TEST_CARD.md) · [Operator probe](probes/OPERATORNAME_AB.md) · [Ledger](MATH_COMPATIBILITY_LEDGER.md)
 
-Open the two pages in a browser on **GitHub's rendered file view**, not Raw or a locally generated preview. Check each line **only if visually observed**. All 22 reference-card checkboxes below are now checked based on the user's phone and PC visual review; these checks are not independently reproduced observations. Operator checks have separate screenshot evidence.
+Open the pages in a browser on **GitHub's rendered file view**, not Raw or a locally generated preview. Check each line **only if visually observed**. The 22 checked items below record the historical user report; its viewed commit and browser versions are unknown, so it is not a current universal certification. Operator checks have separate screenshot evidence. For a new review, use the [ledger](MATH_COMPATIBILITY_LEDGER.md) and record the exact revision, surface and client.
 
 **Reference file:** [Test card](GITHUB_MATH_TEST_CARD.md); exact viewed commit **UNVERIFIED**  
 **Review date:** 2026-10-23 EDT (exact time unknown)  
@@ -47,10 +47,13 @@ Open the two pages in a browser on **GitHub's rendered file view**, not Raw or a
 
 ## Calibration verdict
 
-**Status:** T00–T21 22/22 PASS on phone + PC (user report); P00/P02/P04 PASS and P01/P03/P05 FAIL (mobile screenshot)  
-**Failed strip IDs:** none reported among T00–T21; intentional failures P01, P03, P05  
-**Observed symptoms:** no test-card rendering errors reported; [operator error evidence](MATH_COMPATIBILITY_LEDGER.md) separately recorded  
+The historical report recorded T00–T21 as 22/22 passing on phone and PC browsers, with no card failures reported. The separate mobile screenshot showed P00/P02/P04 passing and P01/P03/P05 explicitly rejected. Its exact client and viewed revision are not established.
+
+A later desktop repository Preview observation at `84cbf0a` found a comma where T09 intended thin spacing and missing T14 set braces. The card was changed to math fences without changing those formulas; at pinned revision `1918795`, the reviewed T09 and T14 rendered the intended spacing and braces. At that later observation, T01, T05, T13 and T16 retained MathML variant attributes but visual differentiation of some blackboard and calligraphic glyphs was **AMBIGUOUS** at the available scale. These observations do not erase or independently verify the earlier report. Details, URLs, scope and further context observations are in the [ledger](MATH_COMPATIBILITY_LEDGER.md).
+
 **Semantic check:** not established by appearance alone  
-**Follow-up discriminator:** exact viewed commit/client, wiki, Issue/PR rendering, desktop operator A/B
+**Follow-up discriminator:** recheck ambiguous glyphs at suitable magnification and inspect the specific client and surface of interest.
+
+For changed repository Markdown, optionally run `python scripts/math_guard.py path/to/changed.md --profile repository-preview --json`, replacing the example path. These conservative, nonzero-exit review prompts are based on selected desktop repository Preview observations; they are not render or mathematical certification. Intentional render probes are expected to produce profile findings and must also be source-checked with the default profile. The selected profile is included in JSON.
 
 If a strip fails, file a [render regression](https://github.com/femboy2112/SMPTeX/issues/new?template=render-regression.md) and update the [ledger](MATH_COMPATIBILITY_LEDGER.md) with the precise evidence. A rendered symbol can still express incorrect mathematics; do not treat a pretty formula as a theorem certificate.

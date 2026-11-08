@@ -29,6 +29,17 @@ python scripts/mobile_fallback.py
 
 The exclusion is only for the intentional operator A/B negative fixture; the next command still checks its syntax. If that fixture is not installed, omit both the exclusion and its separate scan. Run the fallback check when its script and committed artifacts are installed.
 
+For a changed repository Markdown file, optionally run
+`python scripts/math_guard.py path/to/changed.md --profile repository-preview --json`
+with the actual path substituted. The default is `source`; JSON names the
+selected profile. Repository Preview findings are conservative review prompts
+based on observed desktop cases and result in a nonzero exit, not proof of a
+render failure. Intentional punctuation and context challenge probes will
+produce expected profile findings: source-check them separately under the
+default profile rather than silently excluding them from source validation.
+Neither profile certifies Wiki, mobile browser, native app, or mathematical
+semantics. Preserve spacing and operator behavior during any source repair.
+
 Preserve the actual outputs and exit codes. Add project-specific positive/negative/mutation fixtures where failures were encountered. For each novel macro, distinguish source parse failures, Markdown boundary collisions, MathJax syntax failures, and mathematical semantic mistakes.
 
 Specifically A/B probe `\mathrm{rank}` versus `\operatorname{rank}` in the **same live GitHub context** before declaring the latter universally broken. The upstream MathJax command list is not a certification of GitHub's particular configuration. GitHub's Markdown REST render endpoint tests a different part of the pipeline from final browser rendering.

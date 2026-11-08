@@ -22,6 +22,58 @@ def errors(src: str, strict: bool = True):
 
 
 class MathGuardTests(unittest.TestCase):
+    def test_repository_preview_profile_is_delimiter_sensitive(self):
+        spacing = r"\int_0^1 x^2\,dx=\frac13"
+        braces = r"\{x\in X\mid P(x)\}\subseteq X"
+        matrix = r"\begin{pmatrix}a&b\\c&d\end{pmatrix}"
+        for expression in (spacing, braces):
+            for source in ("$" + expression + "$", "$$\n" + expression + "\n$$"):
+                with self.subTest(source=source):
+                    self.assertEqual(errors(source), [])
+                    found = math_guard.Scanner("fixture.md", True, profile="repository-preview").scan(source)
+                    self.assertTrue(any(e.code == "REPO_PREVIEW_PUNCTUATION" for e in found))
+            for source in ("$`" + expression + "`$", "```math\n" + expression + "\n```"):
+                self.assertEqual(math_guard.Scanner("fixture.md", True, profile="repository-preview").scan(source), [])
+        row_display = "$$\n" + matrix + "\n$$"
+        self.assertTrue(any(e.code == "REPO_PREVIEW_ROW_SEPARATOR" for e in math_guard.Scanner("fixture.md", True, profile="repository-preview").scan(row_display)))
+        self.assertEqual(math_guard.Scanner("fixture.md", True, profile="repository-preview").scan("```math\n" + matrix + "\n```"), [])
+        # The row break consumes both slashes; the subsequent comma is not a
+        # thin-space control symbol. No punctuation finding should be invented.
+        slash_pair = "```math\n" + "\\" * 2 + ",x\n```"
+        self.assertEqual(math_guard.Scanner("fixture.md", True, profile="repository-preview").scan(slash_pair), [])
+
+    def test_repository_preview_display_context_controls(self):
+        def findings(src):
+            return math_guard.Scanner("fixture.md", True, profile="repository-preview").scan(src)
+        positive = ("$$\nx=y\n$$", "  $$\n  x=y\n  $$", "> Quote.\n>\n> $$\n> x=y\n> $$\n>\n> Continuation.", "```math\nA\n=\nB\n```")
+        for source in positive:
+            with self.subTest(source=source):
+                self.assertEqual(findings(source), [])
+        adjacent = "Text\n$$\na=b\n$$\nText"
+        boundary = [e.line for e in findings(adjacent) if e.code == "REPO_PREVIEW_DISPLAY_BOUNDARY"]
+        self.assertEqual(boundary, [2, 4])
+        for token in ("=", "---", "- B", "> B", "# B"):
+            source = "$$\nA\n" + token + "\nB\n$$"
+            self.assertTrue(any(e.code == "REPO_PREVIEW_DISPLAY_BLOCK" and e.line == 3 for e in findings(source)), token)
+            self.assertFalse(any(e.code.startswith("REPO_PREVIEW_") for e in errors(source)))
+        for token in ("***", "___"):
+            self.assertFalse(any(e.code == "REPO_PREVIEW_DISPLAY_BLOCK" for e in findings("$$\nA\n" + token + "\nB\n$$")))
+        list_src = "- List item.\n\n  $$\n  x=y\n  $$\n\n  Continuation."
+        self.assertTrue(any(e.code == "REPO_PREVIEW_LIST_DISPLAY" and e.line == 3 for e in findings(list_src)))
+
+    def test_profile_cli_json_default_and_selection(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "profile.md"
+            path.write_text(r"$x\,y$", encoding="utf8")
+            for extra, label, expected in (([], "source", 0), (["--profile", "repository-preview"], "repository-preview", 1)):
+                run = subprocess.run([sys.executable, str(MODULE), str(path), "--json", *extra], capture_output=True, text=True)
+                self.assertEqual(run.returncode, expected)
+                result = json.loads(run.stdout)
+                self.assertEqual(result["profile"], label)
+                self.assertEqual(any(e["code"] == "REPO_PREVIEW_PUNCTUATION" for e in result["issues"]), bool(expected))
+            bad = subprocess.run([sys.executable, str(MODULE), str(path), "--profile", "wiki"], capture_output=True, text=True)
+            self.assertEqual(bad.returncode, 2)
+
     def test_exclude_specific_probe(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
