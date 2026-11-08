@@ -3,6 +3,8 @@ import importlib.util
 from pathlib import Path
 import tempfile
 import os
+import subprocess
+import json
 import io
 from contextlib import redirect_stdout
 import unittest
@@ -46,6 +48,59 @@ class MathGuardTests(unittest.TestCase):
                     self.assertEqual(math_guard.main([".", "--strict-portable", "--exclude", "probe.md"]), 0)
             finally:
                 os.chdir(orig)
+
+    def test_control_symbols_brace_parity_scanner_and_cli(self):
+        def fenced(body):
+            return "```math\n" + body + "\n```\n"
+
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "parity.md"
+            for n in range(1, 5):
+                slash = "\\" * n
+                for brace in "{}":
+                    # For odd runs the target brace is literal. For even runs
+                    # supply its matching group delimiter elsewhere.
+                    valid = (slash + "{x" if n % 2 else slash + "{x}") if brace == "{" else ("x" + slash + "}" if n % 2 else "{x" + slash + "}")
+                    broken = valid + ("}" if n % 2 else "") if brace == "{" else ("{" + valid if n % 2 else valid[1:])
+                    if brace == "{" and n % 2 == 0:
+                        broken = valid[:-1]
+                    for src, expected in ((valid, False), (broken, True)):
+                        with self.subTest(n=n, brace=brace, src=src):
+                            body = fenced(src)
+                            direct = errors(body)
+                            self.assertEqual(any(e.code == "BRACES" for e in direct), expected)
+                            path.write_text(body, encoding="utf8")
+                            run = subprocess.run([sys.executable, str(MODULE), str(path), "--json"], capture_output=True, text=True)
+                            self.assertEqual(run.returncode, int(expected), run.stderr)
+                            result = json.loads(run.stdout)
+                            self.assertEqual(any(e["code"] == "BRACES" for e in result["issues"]), expected)
+
+    def test_row_break_followed_by_group(self):
+        prefix = r"\begin{aligned} a&=b" + "\\" * 2
+        suffix = r" \end{aligned}"
+        self.assertEqual(errors("```math\n" + prefix + "{x}" + suffix + "\n```"), [])
+        self.assertTrue(any(e.code == "BRACES" for e in errors("```math\n" + prefix + "{x" + suffix + "\n```")))
+        self.assertEqual(errors("```math\n" + prefix + r"\{x" + suffix + "\n```"), [])
+
+    def test_ordered_delimiters_and_escaped_commands(self):
+        for body, code in ((r"\right) x \left(", "LEFT_RIGHT"),
+                           (r"\end{aligned}\begin{aligned}", "ENVIRONMENT")):
+            self.assertTrue(any(e.code == code for e in errors("```math\n" + body + "\n```")))
+        self.assertEqual(errors("```math\n" + r"\\begin{aligned} \\left( \\operatorname{x}" + "\n```"), [])
+
+    def test_environment_whitespace_and_malformed_names(self):
+        for tex, code in ((r"\begin {tikzcd} x \end {tikzcd}", "UNSAFE_ENVIRONMENT"),
+                          (r"\begin {aligned} x \end {matrix}", "ENVIRONMENT"),
+                          (r"\begin x", "ENVIRONMENT")):
+            self.assertTrue(any(e.code == code for e in errors("```math\n" + tex + "\n```")))
+        self.assertEqual(errors("```math\n" + r"\begin {aligned}x\end {aligned}" + "\n```"), [])
+
+    def test_math_comment_and_diagnostic_lines(self):
+        src = "```math\n" + r"x % { \newcommand{foo}" + "\n" + r"\frac{1}{x" + "\n```"
+        findings = errors(src)
+        self.assertEqual([(e.code, e.line) for e in findings], [("BRACES", 3)])
+        self.assertTrue(any(e.code == "UNSAFE_MACRO" and e.line == 3 for e in errors("```math\nx\n" + r"\newcommand{a}{b}" + "\n```")))
+        self.assertTrue(any(e.code == "BRACES" for e in errors("```math\n" + r"\% {" + "\n```")))
 
     def test_svg_banner(self):
         import xml.etree.ElementTree as ET

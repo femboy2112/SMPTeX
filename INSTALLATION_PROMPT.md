@@ -22,8 +22,12 @@ Run at least:
 
 ```bash
 python -m unittest discover -s tests -v
-python scripts/math_guard.py . --strict-portable
+python scripts/math_guard.py . --strict-portable --exclude docs/probes/OPERATORNAME_AB.md
+python scripts/math_guard.py docs/probes/OPERATORNAME_AB.md
+python scripts/mobile_fallback.py
 ```
+
+The exclusion is only for the intentional operator A/B negative fixture; the next command still checks its syntax. If that fixture is not installed, omit both the exclusion and its separate scan. Run the fallback check when its script and committed artifacts are installed.
 
 Preserve the actual outputs and exit codes. Add project-specific positive/negative/mutation fixtures where failures were encountered. For each novel macro, distinguish source parse failures, Markdown boundary collisions, MathJax syntax failures, and mathematical semantic mistakes.
 
