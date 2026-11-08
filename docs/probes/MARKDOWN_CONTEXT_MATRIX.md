@@ -36,7 +36,7 @@ a=b
 
 ## E · Markdown-active display lines
 
-Expect: each case displays A, =, and B in that order; the equals line is not a heading. The control uses two aligned rows, while E1 presents the tokens on three source lines.
+E1/E2 expect A, =, and B in that order; the equals line is not a heading. The control uses two aligned rows, while E1 presents the tokens on three source lines.
 
 E1 dollar display:
 
