@@ -30,7 +30,26 @@
 
 At approximately 05:15 UTC, desktop cloud Chrome (exact version unavailable) viewed [the card at 84cbf0a7fd1ca1c0f949ccf8b7ab1208808af45e](https://github.com/femboy2112/SMPTeX/blob/84cbf0a7fd1ca1c0f949ccf8b7ab1208808af45e/docs/GITHUB_MATH_TEST_CARD.md) in GitHub repository file Preview. After typesetting, T09 contained a visible comma between x squared and dx where the source calls for thin spacing, and T14 omitted the expected visible set braces. The accessibility tree also contained the comma and lacked the set braces. On the same page, protected-inline T01 retained its braces and fenced-math T03 rendered. These are nearby controls, not a matched experiment establishing cause. This observation does not invalidate the earlier historical user reports, whose viewed revision and clients were not identified.
 
-The card changes T09 and T14 from isolated-dollar display to math fences without changing their TeX source. Their revised render on any surface is **UNVERIFIED** until examined at that revision. The unchanged source digests match the existing static PNG references; checksum success is not a render test. The [matched context probe](probes/PUNCTUATION_CONTEXT.md) supplies the same spacing and brace expressions across four contexts and row/relation controls. All probe cells are **UNVERIFIED** pending actual surface and client observations. The original failures remain reproducible at the pinned URL above; do not represent a future change in GitHub behavior as a source change.
+The card changes T09 and T14 from isolated-dollar display to math fences without changing their TeX source. The unchanged source digests match the existing static PNG references; checksum success is not a render test. The [matched context probe](probes/PUNCTUATION_CONTEXT.md) supplies the same spacing and brace expressions across four contexts and row/relation controls. For pinned repository Preview observations of the revised card and probe, see the next section; other surfaces and clients remain **UNVERIFIED**. The original failures remain reproducible at the pinned URL above; do not represent a future change in GitHub behavior as a source change.
+
+## Pinned desktop repository Preview · 2026-11-08 UTC
+
+At approximately 05:24 UTC, desktop cloud Chrome (version unavailable) inspected [card at 1918795de676db953cc1d4e720a984ceeef2c51a](https://github.com/femboy2112/SMPTeX/blob/1918795de676db953cc1d4e720a984ceeef2c51a/docs/GITHUB_MATH_TEST_CARD.md) and its [matched probe at the same SHA](https://github.com/femboy2112/SMPTeX/blob/1918795de676db953cc1d4e720a984ceeef2c51a/docs/probes/PUNCTUATION_CONTEXT.md). GitHub repository file Preview was the surface, not a Wiki, issue, PR-rendering, mobile browser or native-app test. The MathML was read only after typesetting; screenshots and the accessibility tree were also inspected. The observations below do not certify mathematical theorems or another client.
+
+| Card strips | Observed result at this SHA |
+| --- | --- |
+| T00, T02–T04, T06–T12, T14–T15, T17–T21 | Source symbols and stated layout supported by rendered MathML and visual inspection, subject to the following qualification: T00, T06, T12 and T18 were checked in MathML; their complete visuals at this revision were not separately captured. T06's MathML has two rows and aligned columns. T07 has two rows and two columns; T08 has two cases; T20 has three rows. T09 has a thin-space MathML element and no comma before dx. T14 has both literal braces. |
+| T01, T05, T13, T16 | Braces, relations, and other structure are present in MathML. The screenshot does not establish that blackboard-bold and calligraphic glyph variants are visually distinguishable: they appear like ordinary letters at available scale, although MathML retains the variant attributes. **AMBIGUOUS** until inspected at suitable magnification or on another identified client. |
+
+| Matched probe | Plain inline | Protected inline | Isolated dollar display | Math fence |
+| --- | --- | --- | --- | --- |
+| A spacing | FAIL: comma | PASS: thin space, no comma | FAIL: comma | PASS: thin space, no comma |
+| B literal braces | FAIL: braces absent | PASS: both braces | FAIL: braces absent | PASS: both braces |
+| C matrix and raw relations | not included | Relations PASS individually | FAIL: one matrix row with red literal `\c`; both relations reduced to `ad` | Matrix PASS: two rows, two columns; relations FAIL: reduced to `ad` |
+
+The MathML for A uses a comma operator in each failing cell, versus a 0.167em space in each passing cell. The B passing cells have brace operators and the failing cells do not. For C, the failing display has a single table row and red text `\c`; the fence has two rows of two cells. Both displays omit the raw `<` and `>` expressions in this particular combined input; protected inline renders them separately. This is a focused observation, not evidence that every angle sign fails in a fence: T08's `x<0` renders in its fenced cases. Prefer protected inline for these relation examples, or use separately tested alternatives; inspect each target render. Root cause and a complete minimal contrast for C remain **UNVERIFIED**.
+
+The T09 and T14 PNG fallbacks were inspected separately: their mathematical symbols appear intact. Their header and source caption fit tightly, with T09's title truncated. This is neither a full 22-image review nor an Android app test.
 
 ## Observed counterexample · O-2026-10-23-MOBILE-OPERATORNAME
 
