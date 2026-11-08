@@ -37,6 +37,8 @@ python scripts/math_guard.py . --strict-portable --exclude docs/probes/OPERATORN
 python scripts/math_guard.py docs/probes/OPERATORNAME_AB.md
 ```
 
+The guard is a lightweight source checker, not a complete TeX or Markdown parser. For example, TeX comments between an environment command and its argument may be conservatively flagged even when TeX accepts them. Review any finding in its actual context.
+
 The experimental probe is **intentionally exempt from the strict macro-policy check**, but it still passes the non-strict source checker; this lets us test a disputed command without teaching agents to use it in ordinary documents.
 
 ## Install the math contract in another repository

@@ -10,7 +10,16 @@
 2. Prefer portable primitives: `\frac`, `\sqrt`, `\sum`, `\prod`, `\mathbb`, `\mathcal`, `\mathrm`, `\text`, `\begin{aligned}`, `\begin{pmatrix}`, and `\begin{cases}`. A command being supported by LaTeX **does not** imply it is supported in GitHub's MathJax configuration.
 3. For the rank/trace/closure family, prefer `\mathrm{rank}`, `\mathrm{Tr}`, `\mathrm{Cl}`. **A same-page GitHub mobile repository-Markdown A/B observation on 2026-10-23 found `\operatorname` explicitly rejected in inline, display, and math-fence contexts.** Do not blindly rewrite spacing-sensitive named operators: `\mathrm` produces upright letters but not all operator spacing and limits semantics. This does not establish a universal MathJax ban. See the ledger.
 4. Do not silently introduce package imports, document preambles, global macros, TikZ, or LaTeX-only diagram environments into Markdown equations. Use separate diagrams where necessary, with explicit provenance and preview checks.
-5. Every math-bearing Markdown edit must pass: `python scripts/math_guard.py . --strict-portable`, plus `python -m unittest discover -s tests -v`. If there is a failure, fix the mathematical/Markdown source, not the guard, unless the guard has a demonstrated false positive.
+5. Run the checks below for math-bearing Markdown edits. The strict exclusion names only the intentional operator A/B negative fixture; its separate non-strict scan still checks its math syntax. If a consumer does not install this fixture, omit both the exclusion and the separate probe command. Fix source failures unless the guard has a demonstrated false positive.
+
+   ```bash
+   python -m unittest discover -s tests -v
+   python scripts/math_guard.py . --strict-portable --exclude docs/probes/OPERATORNAME_AB.md
+   python scripts/math_guard.py docs/probes/OPERATORNAME_AB.md
+   python scripts/mobile_fallback.py
+   ```
+
+   The final command checks the committed fallback artifacts if the consumer installs them; it is not a GitHub render test.
 6. Source guard success is **not** a render certificate. For modified math components not covered by a previously observed matching calibration, open the rendered GitHub page after committing on a non-main branch; record its exact URL, commit, and observed status in the ledger. Never claim a visual check if no browser/UI inspection occurred.
 7. After visual certification, separately review **semantic fidelity**: delimiters, quantifier scope, symbols, map direction, domain/codomain, indices, signs, and assumptions. Do not 'fix' a rendering failure by changing the asserted theorem.
 8. When recording a failure, produce a minimal reproducer, a working nearby control, a failing challenge, and a cross-surface note (repo/wiki/PR). Prefer discriminating probes over global bans inferred from one broken example.
