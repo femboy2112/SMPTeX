@@ -102,6 +102,67 @@ class MathGuardTests(unittest.TestCase):
         self.assertTrue(any(e.code == "UNSAFE_MACRO" and e.line == 3 for e in errors("```math\nx\n" + r"\newcommand{a}{b}" + "\n```")))
         self.assertTrue(any(e.code == "BRACES" for e in errors("```math\n" + r"\% {" + "\n```")))
 
+    def test_table_context_and_pipe_locations(self):
+        for src in ("a | b\n--- | ---\nA | $|x|$", "| a | b |\n| --- | --- |\n| A | $|x|$ |"):
+            self.assertEqual([(e.code, e.line) for e in errors(src)], [("TABLE_PIPE", 3)])
+        self.assertEqual(errors("| ordinary prose $|x|$"), [])
+        self.assertEqual(errors("a | b\n--- | ---\n# heading $|x|$"), [])
+        self.assertEqual(errors("a | b\n--- | ---\nA | $x\\|y$"), [])
+        self.assertEqual(errors("a | b\n--- | --- | ---\nA | $|x|$"), [])
+
+    def test_literal_contexts_and_live_controls(self):
+        literals = ("    $\\newcommand{x}{y}$", "`example\n$\\newcommand{x}{y}$`", "<!--\n$\\newcommand{x}{y}$\n-->", "```text\n$\\newcommand{x}{y}$\n```")
+        for literal in literals:
+            with self.subTest(literal=literal):
+                self.assertEqual(errors(literal), [])
+                self.assertTrue(any(e.code == "UNSAFE_MACRO" for e in errors("```math\n\\newcommand{x}{y}\n```")))
+        self.assertTrue(any(e.code == "UNSAFE_MACRO" for e in errors("paragraph\n    $\\newcommand{x}{y}$")))
+        self.assertTrue(any(e.code == "UNSAFE_MACRO" for e in errors("`<!--` $\\newcommand{x}{y}$")))
+
+    def test_unsupported_html_block_does_not_pass_silently(self):
+        src = "<div>\n```text\n</div>\n$\\operatorname{x}$"
+        self.assertTrue(any(e.code == "UNSUPPORTED_HTML_BLOCK" for e in errors(src)))
+        for tag in ("<custom-tag>", '<custom-tag data-x="a">', '<custom-tag data-x=">">', "<script", "<div"):
+            src = tag + "\n```\nhtml content\n\n$\\operatorname{x}$\n```"
+            self.assertTrue(any(e.code == "UNSUPPORTED_HTML_BLOCK" for e in errors(src)), tag)
+        self.assertEqual(errors("Text <span>inline</span> $x$"), [])
+
+    def test_comments_end_at_container_boundaries(self):
+        for text in ("> <!--\n$\\operatorname{x}$", "- <!--\n$\\operatorname{x}$", "> <!--\n```math\n\\operatorname{x}\n```"):
+            self.assertTrue(any(e.code == "UNCERTIFIED_MACRO" for e in errors(text)))
+        self.assertEqual(errors("<!--\n$\\operatorname{x}$"), [])
+
+    def test_code_span_cannot_cross_table_cells_or_rows(self):
+        for text in ("a | b\n--- | ---\n`foo | $\\operatorname{x}$ `", "a | b\n--- | ---\n`foo | b\nbar | $\\operatorname{x}$ `"):
+            self.assertTrue(any(e.code == "UNCERTIFIED_MACRO" for e in errors(text)))
+
+    def test_context_findings_retain_cli_json_locations(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "nested.md"
+            path.write_text("> ```text\n> literal\n$\\operatorname{x}$\n", encoding="utf8")
+            run = subprocess.run([sys.executable, str(MODULE), str(path), "--strict-portable", "--json"], capture_output=True, text=True)
+            self.assertEqual(run.returncode, 1)
+            findings = json.loads(run.stdout)["issues"]
+            self.assertTrue(any(e["code"] == "UNCERTIFIED_MACRO" and e["line"] == 3 and e["path"] == str(path) for e in findings))
+
+    def test_code_span_cannot_hide_other_blocks(self):
+        for text in ("`foo\n# $\\operatorname{x}$ `", "`foo\n- $\\operatorname{x}$ `", "> `foo\n# $\\operatorname{x}$ `"):
+            self.assertTrue(any(e.code == "UNCERTIFIED_MACRO" and e.line == 2 for e in errors(text)))
+        self.assertEqual(errors("a | b\n--- | ---\n> $|x|$"), [])
+
+    def test_comment_marker_inside_multiline_code(self):
+        text = "`inline\n<!-- literal\nend`\n$\\newcommand{x}{y}$"
+        self.assertTrue(any(e.code == "UNSAFE_MACRO" and e.line == 4 for e in errors(text)))
+
+    def test_fence_containers_and_mutations(self):
+        for prefix, close in (("", ""), ("> ", "> "), ("- ", "  ")):
+            body = prefix + "```math\n" + close + r"\newcommand{a}{b}" + "\n" + close + "```"
+            self.assertTrue(any(e.code == "UNSAFE_MACRO" and e.line == 2 for e in errors(body)))
+            self.assertTrue(any(e.code == "BRACES" for e in errors(body.replace(r"\newcommand{a}{b}", "{x"))))
+        self.assertTrue(any(e.code == "UNSAFE_MACRO" and e.line == 3 for e in errors("> ```text\n> harmless\n$\\newcommand{x}{y}$")))
+        self.assertTrue(any(e.code == "UNSAFE_MACRO" for e in errors("```bad`info\n$\\newcommand{x}{y}$")))
+        self.assertTrue(any(e.code == "UNSAFE_MACRO" for e in errors("~~~math\n\\newcommand{x}{y}\n~~~")))
+
     def test_svg_banner(self):
         import xml.etree.ElementTree as ET
         root = ET.parse(Path(__file__).resolve().parents[1] / "assets" / "smptex-test-pattern.svg").getroot()
@@ -136,7 +197,7 @@ class MathGuardTests(unittest.TestCase):
         self.assertEqual(errors("| Variable | Math |\n| --- | --- |\n| A | $a\\mid b$ |"), [])
 
     def test_markdown_table_raw_pipe_detected(self):
-        self.assertTrue(any(e.code == "TABLE_PIPE" for e in errors("| A | $|x|$ |")))
+        self.assertTrue(any(e.code == "TABLE_PIPE" for e in errors("| name | formula |\n| --- | --- |\n| A | $|x|$ |")))
 
     def test_bad_inline(self):
         self.assertTrue(any(e.code == "UNTERMINATED_INLINE" for e in errors("An equation $a+b.")))
@@ -187,6 +248,8 @@ class MathGuardTests(unittest.TestCase):
 
     def test_fence_missing(self):
         self.assertTrue(any(e.code == "UNTERMINATED_FENCE" for e in errors("```math\nx=y")))
+        codes = {e.code for e in errors("```math\n" + r"\newcommand{a}{x")}
+        self.assertTrue({"UNTERMINATED_FENCE", "UNSAFE_MACRO", "BRACES"} <= codes)
 
     def test_unclosed_noncoding_fence(self):
         self.assertTrue(any(e.code == "UNTERMINATED_FENCE" for e in errors("```python\nprint('x')")))

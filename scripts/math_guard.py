@@ -53,7 +53,7 @@ class Scanner:
         if not tex.strip():
             self.error(line, "EMPTY_MATH", "Empty math expression")
             return
-        if in_table and "|" in tex:
+        if in_table and any(ch == "|" and not self.escaped(tex, i) for i, ch in enumerate(tex)):
             self.error(line, "TABLE_PIPE", "Raw pipe inside table math may split Markdown cells; use \\mid, \\lvert/\\rvert, or move the equation outside the table")
         # TeX control words and control symbols consume their characters as a
         # unit. A pair of backslashes is a row break: the next brace
@@ -130,13 +130,13 @@ class Scanner:
     def _blank(text: str, start: int, end: int) -> str:
         return text[:start] + " " * (end - start) + text[end:]
 
-    def inline(self, line: str, number: int) -> None:
+    def inline(self, line: str, number: int, in_table: bool = False, code_preprocessed: bool = False) -> None:
         # Official GitHub example wraps a literal currency dollar in a span.
         s = re.sub(r"<span>\$</span>", lambda m: " " * len(m.group(0)), line)
         prose = s
         i = 0
         while i < len(s):
-            if s[i] == "`":
+            if s[i] == "`" and not code_preprocessed:
                 n = len(s[i:]) - len(s[i:].lstrip("`"))
                 marker = "`" * n
                 end = s.find(marker, i + n)
@@ -160,7 +160,7 @@ class Scanner:
                     self.error(number, "UNTERMINATED_INLINE", "Missing closing backtick-dollar for $`...`$ math")
                     prose = self._blank(prose, i, len(s))
                     break
-                self.math(s[i + 2:end], number, in_table=s.lstrip().startswith("|"))
+                self.math(s[i + 2:end], number, in_table=in_table)
                 prose = self._blank(prose, i, end + 2)
                 i = end + 2
                 continue
@@ -173,13 +173,111 @@ class Scanner:
                 self.error(number, "UNTERMINATED_INLINE", "Unpaired $; for currency use an escaped dollar or GitHub's <span>$</span> form")
                 prose = self._blank(prose, i, len(s))
                 break
-            self.math(s[i + 1:j], number, in_table=s.lstrip().startswith("|"))
+            self.math(s[i + 1:j], number, in_table=in_table)
             prose = self._blank(prose, i, j + 1)
             i = j + 1
         if BAD_DELIMITER.search(prose):
             self.error(number, "ALT_DELIMITER", "Use documented GitHub math delimiters ($...$, $`...`$, $$...$$, or ```math)")
         if PROSE_TEX.search(prose):
             self.error(number, "BARE_TEX", "TeX macro in prose outside math delimiters; wrap in inline code for literal examples")
+
+    @staticmethod
+    def _table_cells(line: str) -> list[str]:
+        """Split GFM table cells at unescaped pipes (code spans do not protect pipes)."""
+        parts, start = [], 0
+        for i, ch in enumerate(line):
+            if ch == "|" and not Scanner.escaped(line, i):
+                parts.append(line[start:i])
+                start = i + 1
+        parts.append(line[start:])
+        if len(parts) > 1 and not parts[0].strip():
+            parts.pop(0)
+        if len(parts) > 1 and not parts[-1].strip():
+            parts.pop()
+        return parts
+
+    def _inline_block(self, records: list[tuple[int, str]]) -> None:
+        if not records:
+            return
+        table_rows: set[int] = set()
+        i = 1
+        while i < len(records):
+            header = records[i - 1][1]
+            delim = records[i][1]
+            cells = self._table_cells(delim)
+            if ("|" in header or "|" in delim) and len(cells) == len(self._table_cells(header)) and all(re.fullmatch(r"\s*:?-+:?\s*", x) for x in cells):
+                table_rows.add(i - 1)
+                table_rows.add(i)
+                j = i + 1
+                while (j < len(records) and records[j][1].strip()
+                       and not re.match(r" {0,3}(?:#{1,6}(?:\s|$)|>|(?:[-+*]|[0-9]{1,9}[.)])\s)", records[j][1])):
+                    table_rows.add(j)
+                    j += 1
+                i = j
+            else:
+                i += 1
+        def mask_code(joined: str) -> str:
+            # Equal-length runs may span lines within the same paragraph or
+            # cell, but never across cells, table rows, or block boundaries.
+            masked = list(joined)
+            i = 0
+            while i < len(joined):
+                if joined.startswith("$`", i) and not self.escaped(joined, i):
+                    end = joined.find("`$", i + 2)
+                    if end >= 0:
+                        i = end + 2
+                        continue
+                if joined[i] != "`" or self.escaped(joined, i):
+                    i += 1
+                    continue
+                n = 1
+                while i + n < len(joined) and joined[i + n] == "`":
+                    n += 1
+                j = i + n
+                close = -1
+                while j < len(joined):
+                    if joined[j] != "`":
+                        j += 1
+                        continue
+                    k = j
+                    while k < len(joined) and joined[k] == "`":
+                        k += 1
+                    if k - j == n:
+                        close = k
+                        break
+                    j = k
+                if close < 0:
+                    i += n
+                    continue
+                for k in range(i, close):
+                    if masked[k] != "\n":
+                        masked[k] = " "
+                i = close
+            return "".join(masked)
+
+        lines = [text for _, text in records]
+        i = 0
+        while i < len(lines):
+            if i in table_rows:
+                row = lines[i]
+                # Preserve delimiters for TABLE_PIPE while preventing code
+                # spans from consuming text in a different cell.
+                cuts = [j for j, ch in enumerate(row) if ch == "|" and not self.escaped(row, j)]
+                pieces, start = [], 0
+                for cut in cuts:
+                    pieces.extend((mask_code(row[start:cut]), "|"))
+                    start = cut + 1
+                pieces.append(mask_code(row[start:]))
+                lines[i] = "".join(pieces)
+                i += 1
+            else:
+                j = i + 1
+                while j < len(lines) and j not in table_rows:
+                    j += 1
+                lines[i:j] = mask_code("\n".join(lines[i:j])).split("\n")
+                i = j
+        for i, ((number, _), text) in enumerate(zip(records, lines)):
+            self.inline(text, number, in_table=i in table_rows, code_preprocessed=True)
 
     def scan(self, content: str) -> list[Issue]:
         fence_char = ""
@@ -190,7 +288,52 @@ class Scanner:
         display = False
         display_lines: list[str] = []
         display_start = 0
-        for number, line in enumerate(content.splitlines(), 1):
+        records: list[tuple[int, str]] = []
+        comment = False
+        comment_quote = comment_list = 0
+        list_indent = 0
+        fence_quote = fence_list = 0
+        display_quote = display_list = 0
+        code_marker = ""
+        record_quote = 0
+        raw_lines = content.splitlines()
+        for number, raw in enumerate(raw_lines, 1):
+            # Explicit block-quote prefixes, then a simple list marker or its
+            # content indent. Complex lazy/nested lists are not fully parsed.
+            quote_match = re.match(r"^(?: {0,3}> ?)+", raw)
+            quote_prefix = quote_match.group(0) if quote_match else ""
+            quote_depth = quote_prefix.count(">")
+            line = raw[len(quote_prefix):]
+            if fence_char and (quote_depth < fence_quote or (fence_list and line.strip() and not line.startswith(" " * fence_list))):
+                if is_math_fence:
+                    self.math("\n".join(math_lines), math_start + 1)
+                self.error(math_start if is_math_fence else number - 1, "UNTERMINATED_FENCE", "Unclosed Markdown code fence at container boundary")
+                fence_char = ""
+                is_math_fence = False
+                math_lines = []
+            if comment and (quote_depth < comment_quote or (comment_list and line.strip() and not line.startswith(" " * comment_list))):
+                comment = False
+            if display and (quote_depth < display_quote or (display_list and line.strip() and not line.startswith(" " * display_list))):
+                self.math("\n".join(display_lines), display_start + 1)
+                self.error(display_start, "UNTERMINATED_DISPLAY", "Missing closing $$ before container boundary")
+                display = False
+                display_lines = []
+            marker = re.match(r"^ {0,3}(?:[-+*]|[0-9]{1,9}[.)])[ \t]+", line)
+            if not fence_char and not display and records and (quote_depth != record_quote or marker):
+                self._inline_block(records)
+                records = []
+                code_marker = ""
+            record_quote = quote_depth
+            if marker:
+                list_indent = len(marker.group(0))
+                line = line[list_indent:]
+            elif list_indent and line.startswith(" " * list_indent):
+                line = line[list_indent:]
+            elif line.strip():
+                list_indent = 0
+            if list_indent and re.match(r"^ {0,3}>", line):
+                self.error(number, "UNSUPPORTED_CONTAINER", "A block quote inside a list is outside the scanner's supported Markdown subset; inspect it separately")
+
             fence = FENCE.match(line)
             if fence_char:
                 if (fence and fence.group(1)[0] == fence_char
@@ -212,8 +355,74 @@ class Scanner:
                 else:
                     display_lines.append(line)
                 continue
+            # Comments are not recognized within same-line code or math.
+            chars = list(line)
+            i = 0
+            while i < len(line):
+                if comment:
+                    end = line.find("-->", i)
+                    stop = len(line) if end < 0 else end + 3
+                    chars[i:stop] = " " * (stop - i)
+                    i = stop
+                    if end >= 0:
+                        comment = False
+                    continue
+                if code_marker:
+                    match = re.search(r"(?<!`)" + re.escape(code_marker) + r"(?!`)", line[i:])
+                    if match:
+                        i += match.end()
+                        code_marker = ""
+                    else:
+                        i = len(line)
+                    continue
+                if line.startswith("<!--", i):
+                    comment_quote, comment_list = quote_depth, list_indent
+                    comment = True
+                    continue
+                if line[i] == "$" and not self.escaped(line, i):
+                    if line.startswith("$`", i):
+                        end = line.find("`$", i + 2)
+                        if end >= 0:
+                            i = end + 2
+                            continue
+                    else:
+                        end = i + 1
+                        while end < len(line) and (line[end] != "$" or self.escaped(line, end)):
+                            end += 1
+                        if end < len(line):
+                            i = end + 1
+                            continue
+                if line[i] == "`" and not self.escaped(line, i):
+                    match = re.match(r"`+", line[i:])
+                    marker = match.group(0)
+                    close = re.search(r"(?<!`)" + re.escape(marker) + r"(?!`)", line[i + len(marker):])
+                    if close:
+                        i += len(marker) + close.end()
+                        continue
+                    # Only treat an unmatched opener as a multiline code span
+                    # if an exact closer exists before a block boundary.
+                    closer = re.compile(r"(?<!`)" + re.escape(marker) + r"(?!`)")
+                    for future in raw_lines[number:]:
+                        plain = re.sub(r"^(?: {0,3}> ?)+", "", future)
+                        if not plain.strip() or FENCE.match(plain):
+                            break
+                        if closer.search(plain):
+                            code_marker = marker
+                            break
+                    i += len(marker)
+                    continue
+                i += 1
+            line = "".join(chars)
+            if re.match(r"^ {0,3}(?:</?(?:address|article|aside|base|basefont|blockquote|body|caption|center|col|colgroup|dd|details|dialog|dir|div|dl|dt|fieldset|figcaption|figure|footer|form|frame|frameset|h[1-6]|head|header|hr|html|iframe|legend|li|link|main|menu|menuitem|nav|noframes|ol|optgroup|option|p|param|pre|script|search|section|source|style|summary|table|tbody|td|textarea|tfoot|th|thead|title|tr|track|ul)(?=[\s/>]|$)|<\?|<![A-Z]|<!\[CDATA\[)", line, re.IGNORECASE) or re.match(r"^ {0,3}</?[A-Za-z][A-Za-z0-9-]*(?:[ \t]+.*)?[ \t]*/?>[ \t]*$", line):
+                self.error(number, "UNSUPPORTED_HTML_BLOCK", "HTML blocks other than comments require separate inspection")
+            fence = FENCE.match(line)
+            if fence and fence.group(1)[0] == "`" and "`" in fence.group(2):
+                fence = None
             if fence:
+                self._inline_block(records)
+                records = []
                 fence_char = fence.group(1)[0]
+                fence_quote, fence_list = quote_depth, list_indent
                 fence_len = len(fence.group(1))
                 language = fence.group(2).strip().split(maxsplit=1)[0].lower() if fence.group(2).strip() else ""
                 is_math_fence = language == "math"
@@ -221,16 +430,36 @@ class Scanner:
                     math_start = number
                     math_lines = []
                 continue
+            if (line.startswith("    ") or line.startswith("\t")) and not records:
+                continue
             if ISOLATED_DISPLAY.match(line):
+                self._inline_block(records)
+                records = []
                 display = True
+                display_quote, display_list = quote_depth, list_indent
                 display_start = number
                 display_lines = []
                 continue
-            self.inline(line, number)
+            block_boundary = re.match(r"^ {0,3}(?:#{1,6}(?:[ \t]|$)|(?:=+|-+)[ \t]*$|(?:[*_-][ \t]*){3,}$)", line)
+            if block_boundary:
+                self._inline_block(records)
+                records = []
+                code_marker = ""
+                self.inline(line, number)
+            elif not line.strip():
+                self._inline_block(records)
+                records = []
+                code_marker = ""
+            else:
+                records.append((number, line))
+        self._inline_block(records)
         eof = len(content.splitlines()) or 1
         if display:
+            self.math("\n".join(display_lines), display_start + 1)
             self.error(display_start, "UNTERMINATED_DISPLAY", "Missing closing $$ on its own line")
         if fence_char:
+            if is_math_fence:
+                self.math("\n".join(math_lines), math_start + 1)
             self.error(math_start if is_math_fence else eof, "UNTERMINATED_FENCE", "Unclosed Markdown code fence")
         return self.issues
 
